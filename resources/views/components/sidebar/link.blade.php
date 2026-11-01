@@ -1,42 +1,23 @@
-@props(['isActive' => false, 'title' => '', 'collapsible' => false])
+@props(['isActive' => false, 'title' => '', 'collapsible' => false, 'icon' => null])
 
 @php
-    $baseClasses = 'flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-200 font-bold';
-    $activeClasses = $isActive
-        ? 'bg-gradient-to-br from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/25'
-        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400';
-    $classes = $baseClasses . ' ' . $activeClasses;
-    if ($collapsible) {
-        $classes .= ' w-full';
-    }
+    $classes = 'flex items-center gap-3 py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-150 '
+        . ($isActive
+            ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white')
+        . ($collapsible ? ' w-full' : '');
 @endphp
 
 @if ($collapsible)
     <button type="button" {{ $attributes->merge(['class' => $classes]) }}>
-        @if ($icon ?? false)
-            <span class="shrink-0 w-6 flex items-center justify-center">{!! $icon !!}</span>
-        @else
-            <span class="shrink-0 w-6 flex items-center justify-center">
-                <x-icons.empty-circle class="w-5 h-5 text-current opacity-60" aria-hidden="true" />
-            </span>
-        @endif
-
-        <span class="flex-1 text-start whitespace-nowrap overflow-hidden text-ellipsis" x-show="isSidebarOpen || isSidebarHovered">
-            {{ $title }}
-        </span>
+        <span class="shrink-0 w-5 text-center">{!! $icon ?? '<i class="fas fa-circle text-[6px]"></i>' !!}</span>
+        <span class="flex-1 text-start whitespace-nowrap overflow-hidden text-ellipsis" x-show="isSidebarOpen || isSidebarHovered">{{ $title }}</span>
+        <i class="fas fa-chevron-down text-[10px] opacity-60 transition-transform" :class="{ 'rotate-180': open }" x-show="isSidebarOpen || isSidebarHovered"></i>
     </button>
 @else
-    <a {{ $attributes->merge(['class' => $classes]) }} wire:navigate>
-        @if ($icon ?? false)
-            <span class="shrink-0 w-6 flex items-center justify-center">{!! $icon !!}</span>
-        @else
-            <span class="shrink-0 w-6 flex items-center justify-center">
-                <x-icons.empty-circle class="w-5 h-5 text-current opacity-60" aria-hidden="true" />
-            </span>
-        @endif
-
-        <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis" x-show="isSidebarOpen || isSidebarHovered">
-            {{ $title }}
-        </span>
+    <a {{ $attributes->merge(['class' => $classes]) }} wire:navigate title="{{ $title }}">
+        <span class="shrink-0 w-5 text-center">{!! $icon ?? '<i class="fas fa-circle text-[6px]"></i>' !!}</span>
+        <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis" x-show="isSidebarOpen || isSidebarHovered">{{ $title }}</span>
+        {{ $badge ?? '' }}
     </a>
 @endif

@@ -4,81 +4,66 @@ declare(strict_types=1);
 
 namespace App\Livewire\Products;
 
-use Livewire\Attributes\Title;
-
 use App\Livewire\Forms\ProductForm;
-use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductService;
+use App\Support\Barcode;
 use App\Traits\WithAlert;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
-#[Layout('layouts.app')]
-#[Title('Edit Product')]
+#[Layout('layouts.app', ['plain' => true])]
+#[Title('Edit product')]
 class Edit extends Component
 {
     use WithAlert;
-    use WithFileUploads;
 
     public Product $product;
 
-    public mixed $productWarehouses;
-
     public ProductForm $form;
-
-    public function addOption(): void
-    {
-        $this->form->options[] = [
-            'type' => '',
-            'value' => '',
-        ];
-    }
-
-    public function removeOption(mixed $index): void
-    {
-        unset($this->form->options[$index]);
-        $this->form->options = array_values($this->form->options);
-    }
 
     public function mount(int|string $id): void
     {
+        abort_if(Gate::denies('product_update'), 403);
+
         $this->product = Product::query()->findOrFail($id);
-        $this->productWarehouses = $this->product->warehouses;
         $this->form->setProduct($this->product);
     }
 
     public function update(ProductService $productService): void
     {
+        abort_if(Gate::denies('product_update'), 403);
+
         $this->form->validate();
+        $productService->update($this->product, $this->form->toProduct(), $this->form->stock_alert);
 
-        $productService->update($this->product, $this->form->all());
-
-        $this->dispatch('refreshIndex')->to(Index::class);
-
-        $this->alert('success', __('Product updated successfully.'));
+        $this->alert('success', __('Product updated.'));
     }
 
     #[Computed]
-    public function categories()
+    public function categories(): array
     {
-        return Category::query()->pluck('name', 'id')->toArray();
+        return Category::query()->orderBy('name')->pluck('name', 'id')->all();
     }
 
-    #[Computed]
-    public function brands()
+    public function generateCode(): void
     {
-        return Brand::query()->pluck('name', 'id')->toArray();
+        $this->form->code = Barcode::nextCatalogueCode();
+    }
+
+    public function updatedForm(mixed $value, string $key): void
+    {
+        if ($key === 'code') {
+            $this->form->code = trim((string) $this->form->code);
+        }
     }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        abort_if(Gate::denies('product update'), 403);
-
         return view('livewire.products.edit');
     }
 }

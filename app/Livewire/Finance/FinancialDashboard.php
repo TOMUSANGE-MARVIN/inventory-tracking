@@ -11,7 +11,6 @@ use App\Actions\Finance\CalculateNetMarginAction;
 use App\Actions\Finance\GenerateFinancialKpiReportAction;
 use App\Actions\Finance\GenerateFinancialReportsAction;
 use App\Models\Product;
-use Carbon\Carbon;
 use Exception;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
@@ -149,7 +148,7 @@ class FinancialDashboard extends Component
 
         try {
             $dateFrom = \Illuminate\Support\Facades\Date::parse($this->dateFrom);
-            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo);
+            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo)->endOfDay(); // include the whole last day
 
             // Load KPI data using action
             $generateFinancialKpiReportAction = new GenerateFinancialKpiReportAction(

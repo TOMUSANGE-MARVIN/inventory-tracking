@@ -1,6 +1,6 @@
 <div>
     <div class="print:hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="flex items-center justify-between py-4">
                 <div>
                     <div class="text-sm text-gray-500 mb-1">
@@ -28,7 +28,7 @@
 
     <!-- Filters -->
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Date From') }}</label>
@@ -62,7 +62,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-600">{{ __('Total Revenue') }}</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ format_currency($analyticsData['total_revenue'] ?? 0) }}</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ format_currency($overview['total_revenue'] ?? 0) }}</p>
                             </div>
                             <div class="p-3 bg-blue-100 rounded-full">
                                 <i class="ti ti-chart-line text-blue-600 text-xl"></i>
@@ -81,7 +81,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-600">{{ __('Total Sales') }}</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ number_format($analyticsData['total_sales'] ?? 0) }}</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ number_format($overview['total_sales'] ?? 0) }}</p>
                             </div>
                             <div class="p-3 bg-green-100 rounded-full">
                                 <i class="ti ti-shopping-cart text-green-600 text-xl"></i>
@@ -100,7 +100,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-600">{{ __('Avg Order Value') }}</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ format_currency($analyticsData['average_order_value'] ?? 0) }}</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ format_currency($overview['average_order_value'] ?? 0) }}</p>
                             </div>
                             <div class="p-3 bg-yellow-100 rounded-full">
                                 <i class="ti ti-currency-dollar text-yellow-600 text-xl"></i>
@@ -119,7 +119,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-600">{{ __('Growth Rate') }}</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ number_format($analyticsData['growth_rate'] ?? 0, 2) }}%</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ isset($overview['growth_rate']) ? number_format($overview['growth_rate'], 1) . '%' : '—' }}</p>
                             </div>
                             <div class="p-3 bg-purple-100 rounded-full">
                                 <i class="ti ti-trending-up text-purple-600 text-xl"></i>
@@ -145,8 +145,9 @@
                                 <h3 class="text-lg font-medium text-gray-900">{{ __('Revenue Trend') }}</h3>
                             </div>
                             <div class="p-6">
-                                @if(!empty($revenueData['daily_revenue']))
-                                    <div id="revenue-chart" style="height: 300px;"></div>
+                                @if(!empty($overview['daily_revenue']))
+                                    <div wire:key="revenue-{{ md5(json_encode($overview['daily_revenue'])) }}" wire:ignore class="h-[300px]"
+                                        x-data="vizChart('area', @js(['series' => [['name' => __('Revenue'), 'data' => array_values($overview['daily_revenue'])]], 'labels' => collect(array_keys($overview['daily_revenue']))->map(fn ($d) => \Illuminate\Support\Carbon::parse($d)->format('j M'))->all()]))"></div>
                                 @else
                                     <div class="text-center py-12">
                                         <div class="mx-auto h-24 w-24 text-gray-400 mb-4">
@@ -169,9 +170,9 @@
                                 <h3 class="text-lg font-medium text-gray-900">{{ __('Top Products') }}</h3>
                             </div>
                             <div class="p-6">
-                                @if(!empty($analyticsData['top_products']))
+                                @if(!empty($overview['top_products']))
                                     <div class="space-y-4">
-                                        @foreach($analyticsData['top_products'] as $product)
+                                        @foreach($overview['top_products'] as $product)
                                             <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                                                 <div class="flex-1">
                                                     <div class="text-sm font-medium text-gray-900">{{ $product['name'] }}</div>
@@ -262,63 +263,4 @@
         </div>
     </div>
 
-    @push('scripts')
-        @if(!empty($revenueData['daily_revenue']))
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const revenueData = @js($revenueData['daily_revenue']);
-                    const dates = Object.keys(revenueData);
-                    const revenues = Object.values(revenueData);
-
-                    const options = {
-                        series: [{
-                            name: '{{ __('Revenue') }}',
-                            data: revenues
-                        }],
-                        chart: {
-                            type: 'area',
-                            height: 300,
-                            toolbar: {
-                                show: false
-                            }
-                        },
-                        dataLabels: {
-                            enabled: false
-                        },
-                        stroke: {
-                            curve: 'smooth',
-                            width: 2
-                        },
-                        xaxis: {
-                            categories: dates,
-                            type: 'datetime'
-                        },
-                        yaxis: {
-                            labels: {
-                                formatter: function (val) {
-                                    return new Intl.NumberFormat('en-US', {
-                                        style: 'currency',
-                                        currency: 'USD'
-                                    }).format(val);
-                                }
-                            }
-                        },
-                        fill: {
-                            type: 'gradient',
-                            gradient: {
-                                shadeIntensity: 1,
-                                opacityFrom: 0.7,
-                                opacityTo: 0.3,
-                                stops: [0, 90, 100]
-                            }
-                        },
-                        colors: ['#206bc4']
-                    };
-
-                    const chart = new ApexCharts(document.querySelector('#revenue-chart'), options);
-                    chart.render();
-                });
-            </script>
-        @endif
-    @endpush
 </div>

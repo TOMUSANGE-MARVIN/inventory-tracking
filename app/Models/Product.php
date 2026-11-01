@@ -140,10 +140,15 @@ class Product extends Model
         'id',
         'name',
         'code',
+        'slug',
+        'price',
+        'cost',
+        'quantity',
         'barcode_symbology',
         'seasonality',
         'availability',
         'unit',
+        'is_refillable',
         'status',
         'tax_amount',
         'tax_type',
@@ -160,6 +165,7 @@ class Product extends Model
     {
         return [
             'featured' => 'boolean',
+            'is_refillable' => 'boolean',
             'status' => 'boolean',
             'hot' => 'boolean',
             'best' => 'boolean',

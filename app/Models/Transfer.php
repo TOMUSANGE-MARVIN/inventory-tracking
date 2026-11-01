@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\TransferStatus;
 use App\Support\HasAdvancedFilter;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -92,11 +94,41 @@ class Transfer extends Model
         'document',
         'status',
         'note',
+        'dispatched_by',
+        'dispatched_at',
+        'received_by',
+        'received_at',
     ];
 
     /**
      * @return BelongsTo<Warehouse, $this>
      */
+    protected function casts(): array
+    {
+        return [
+            'status' => TransferStatus::class,
+            'dispatched_at' => 'datetime',
+            'received_at' => 'datetime',
+        ];
+    }
+
+    public function items(): BelongsToMany
+    {
+        return $this->belongsToMany(StockItem::class, 'transfer_items')
+            ->withPivot('from_stock', 'received_at')
+            ->withTimestamps();
+    }
+
+    public function dispatcher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dispatched_by');
+    }
+
+    public function receiver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'received_by');
+    }
+
     public function fromWarehouse(): BelongsTo
     {
         return $this->belongsTo(

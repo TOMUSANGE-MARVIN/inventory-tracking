@@ -43,6 +43,7 @@ class TransferDetails extends Model
         'product_id',
         'warehouse_id',
         'quantity',
+        'received_quantity',
     ];
 
     /**

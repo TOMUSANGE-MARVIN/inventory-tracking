@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Analytics;
 
+use App\Enums\SaleStatus;
 use App\Models\Sale;
 use App\Models\SaleDetails;
+use App\Models\SalePayment;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -67,7 +69,7 @@ final class GenerateRevenueReportAction
             'report_period' => [
                 'from' => $dateFrom->toDateString(),
                 'to' => $dateTo->toDateString(),
-                'days' => $dateTo->diffInDays($dateFrom) + 1,
+                'days' => (int) abs($dateTo->diffInDays($dateFrom)) + 1,
             ],
             'overall_statistics' => $overallStats,
             'time_breakdown' => $timeBreakdown,
@@ -94,23 +96,23 @@ final class GenerateRevenueReportAction
         $stats = Sale::query()->whereBetween('created_at', [$dateFrom, $dateTo])
             ->selectRaw('
                 COUNT(*) as total_orders,
-                COUNT(CASE WHEN status != "cancelled" THEN 1 END) as completed_orders,
-                COUNT(CASE WHEN status = "cancelled" THEN 1 END) as cancelled_orders,
-                SUM(CASE WHEN status != "cancelled" THEN total_amount ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN status != "cancelled" THEN tax_amount ELSE 0 END) as total_tax,
-                SUM(CASE WHEN status != "cancelled" THEN subtotal_amount ELSE 0 END) as total_subtotal,
-                AVG(CASE WHEN status != "cancelled" THEN total_amount ELSE NULL END) as average_order_value,
-                MIN(CASE WHEN status != "cancelled" THEN total_amount ELSE NULL END) as min_order_value,
-                MAX(CASE WHEN status != "cancelled" THEN total_amount ELSE NULL END) as max_order_value
+                COUNT(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN 1 END) as completed_orders,
+                COUNT(CASE WHEN status = ' . SaleStatus::CANCELED->value . ' THEN 1 END) as cancelled_orders,
+                SUM(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN total_amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN tax_amount ELSE 0 END) as total_tax,
+                SUM(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN (total_amount - tax_amount - shipping_amount + discount_amount) ELSE 0 END) as total_subtotal,
+                AVG(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN total_amount ELSE NULL END) as average_order_value,
+                MIN(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN total_amount ELSE NULL END) as min_order_value,
+                MAX(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN total_amount ELSE NULL END) as max_order_value
             ')
             ->first();
 
         $totalItems = SaleDetails::query()->whereHas('sale', function (\Illuminate\Contracts\Database\Query\Builder $builder) use ($dateFrom, $dateTo): void {
             $builder->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->where('status', '!=', 'cancelled');
+                ->where('status', '!=', SaleStatus::CANCELED->value);
         })->sum('quantity');
 
-        $daysDiff = $dateTo->diffInDays($dateFrom) + 1;
+        $daysDiff = (int) abs($dateTo->diffInDays($dateFrom)) + 1;
 
         return [
             'total_orders' => (int) ($stats->total_orders ?? 0),
@@ -143,7 +145,7 @@ final class GenerateRevenueReportAction
         $dateFormatSql = db_date_format('created_at', $dateFormat);
 
         $breakdown = Sale::query()->whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', SaleStatus::CANCELED->value)
             ->selectRaw("
                 {$dateFormatSql} as period,
                 COUNT(*) as order_count,
@@ -176,14 +178,14 @@ final class GenerateRevenueReportAction
 
     private function getPaymentMethodBreakdown(Carbon $dateFrom, Carbon $dateTo): array
     {
-        $breakdown = Sale::query()->whereBetween('created_at', [$dateFrom, $dateTo])
-            ->where('status', '!=', 'cancelled')
-            ->where('is_paid', true)
+        $breakdown = SalePayment::query()
+            ->whereBetween('sale_payments.created_at', [$dateFrom, $dateTo])
+            ->whereHas('sale', fn ($q) => $q->where('status', '!=', SaleStatus::CANCELED->value))
             ->selectRaw('
                 COALESCE(payment_method, "unknown") as payment_method,
-                COUNT(*) as order_count,
-                SUM(total_amount) as revenue,
-                AVG(total_amount) as avg_order_value
+                COUNT(DISTINCT sale_id) as order_count,
+                SUM(amount) as revenue,
+                AVG(amount) as avg_order_value
             ')
             ->groupBy('payment_method')
             ->orderByDesc('revenue')
@@ -215,7 +217,7 @@ final class GenerateRevenueReportAction
             ->selectRaw('
                 status,
                 COUNT(*) as order_count,
-                SUM(CASE WHEN status != "cancelled" THEN total_amount ELSE 0 END) as revenue
+                SUM(CASE WHEN status != ' . SaleStatus::CANCELED->value . ' THEN total_amount ELSE 0 END) as revenue
             ')
             ->groupBy('status')
             ->orderByDesc('order_count')
@@ -242,23 +244,25 @@ final class GenerateRevenueReportAction
     {
         $breakdown = SaleDetails::query()->whereHas('sale', function (\Illuminate\Contracts\Database\Query\Builder $builder) use ($dateFrom, $dateTo): void {
             $builder->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->where('status', '!=', 'cancelled');
+                ->where('status', '!=', SaleStatus::CANCELED->value);
         })
-            ->with('product')
+            ->with(['product' => fn ($q) => $q->withTrashed()])
             ->selectRaw('
                 product_id,
+                MAX(name) as line_name,
                 SUM(quantity) as total_quantity,
-                SUM(price * quantity) as revenue,
-                COUNT(DISTINCT order_id) as order_count,
+                SUM(CASE WHEN sub_total > 0 THEN sub_total ELSE price * quantity END) as revenue,
+                COUNT(DISTINCT sale_id) as order_count,
                 AVG(price) as avg_price
             ')
             ->groupBy('product_id')
             ->orderByDesc('revenue')
+            ->orderByDesc('total_quantity')
             ->limit(20) // Top 20 products
             ->get()
             ->map(fn ($item) => [
                 'product_id' => $item->product_id,
-                'product_name' => $item->product->name ?? 'Unknown Product',
+                'product_name' => $item->product->name ?? $item->line_name ?? 'Unknown Product',
                 'total_quantity' => (int) $item->total_quantity,
                 'revenue' => (float) $item->revenue,
                 'order_count' => (int) $item->order_count,
@@ -276,7 +280,7 @@ final class GenerateRevenueReportAction
     {
         $breakdown = SaleDetails::query()->whereHas('sale', function (\Illuminate\Contracts\Database\Query\Builder $builder) use ($dateFrom, $dateTo): void {
             $builder->whereBetween('created_at', [$dateFrom, $dateTo])
-                ->where('status', '!=', 'cancelled');
+                ->where('status', '!=', SaleStatus::CANCELED->value);
         })
             ->join('products', 'sale_details.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')

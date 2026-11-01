@@ -54,6 +54,7 @@
     "alpinejs": "^3.5.0",
     "apexcharts": "^3.44.0",
     "flatpickr": "^4.6.13",
+    "html5-qrcode": "^2.3.8",
     "perfect-scrollbar": "^1.5.5",
     "sortablejs": "^1.15.0",
     "sweetalert2": "^11.26.24",

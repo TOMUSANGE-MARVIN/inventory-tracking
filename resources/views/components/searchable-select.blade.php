@@ -37,7 +37,7 @@
         name="{{ $name }}"
         x-model="value"
         class="hidden"
-        {{ $required ? 'required' : '' }}
+        :required="$required"
     >
         <option value="">{{ $placeholder }}</option>
         <template x-for="option in options" :key="option.value">

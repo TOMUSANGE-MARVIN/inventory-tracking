@@ -25,7 +25,7 @@ class Index extends Component
     use WithAlert;
     use WithFileUploads;
 
-    public mixed $salereturn;
+    public mixed $salereturn = null;
 
     public string $model = SaleReturn::class;
 
@@ -35,7 +35,7 @@ class Index extends Component
 
     public bool $paymentModal = false;
 
-    public mixed $salereturn_id;
+    public mixed $salereturn_id = null;
 
     public mixed $reference;
 

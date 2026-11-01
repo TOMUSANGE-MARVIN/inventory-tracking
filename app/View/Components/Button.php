@@ -77,32 +77,33 @@ class Button extends Component
             'xl' => 'px-6 py-3 text-base',
         ];
 
+        // Sparkle theme: one solid primary, a quiet white secondary, soft tinted info/warning, solid status colours.
         $variantClasses = [
             'primary' => $this->outline
                 ? 'border-primary-600 text-primary-600 hover:bg-primary-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-900/20'
-                : 'bg-gradient-to-br from-primary-600 to-primary-500 text-white shadow-lg hover:brightness-110 dark:from-primary-500 dark:to-primary-400',
+                : 'bg-primary-600 text-white shadow-sm shadow-primary-600/30 hover:bg-primary-700 focus:ring-primary-500/40',
             'secondary' => $this->outline
-                ? 'border-secondary-600 text-secondary-600 hover:bg-secondary-50 dark:border-secondary-400 dark:text-secondary-400 dark:hover:bg-secondary-900/20'
-                : 'bg-gray-400 text-gray-900 hover:bg-gray-800 hover:text-white dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600',
+                ? 'border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800'
+                : 'bg-white text-gray-700 !border-gray-200 hover:!border-primary-300 hover:text-gray-900 dark:bg-gray-900 dark:text-gray-200 dark:!border-gray-700 focus:ring-primary-500/30',
             'info' => $this->outline
-                ? 'border-cyan-600 text-cyan-600 hover:bg-cyan-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-900/20'
-                : 'bg-cyan-600 text-white hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600',
+                ? 'border-primary-500 text-primary-600 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900/20'
+                : 'bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/40 dark:text-primary-200 dark:hover:bg-primary-900/60 focus:ring-primary-500/30',
             'success' => $this->outline
-                ? 'border-success-600 text-success-600 hover:bg-success-50 dark:border-success-400 dark:text-success-400 dark:hover:bg-success-900/20'
-                : 'bg-success-600 text-white hover:bg-success-700 dark:bg-success-500 dark:hover:bg-success-600',
+                ? 'border-[#1baf7a] text-[#0f8a5f] hover:bg-[#1baf7a]/10 dark:text-[#5fd3a8]'
+                : 'bg-[#1baf7a] text-white hover:bg-[#169a6b] focus:ring-[#1baf7a]/40',
             'danger' => $this->outline
-                ? 'border-error-600 text-error-600 hover:bg-error-50 dark:border-error-400 dark:text-error-400 dark:hover:bg-error-900/20'
-                : 'bg-error-600 text-white hover:bg-error-700 dark:bg-error-500 dark:hover:bg-error-600',
+                ? 'border-[#d03b3b] text-[#b02f2f] hover:bg-[#d03b3b]/10 dark:text-[#f08a8a]'
+                : 'bg-[#d03b3b] text-white hover:bg-[#b83232] focus:ring-[#d03b3b]/40',
             'warning' => $this->outline
-                ? 'border-warning-600 text-warning-600 hover:bg-warning-50 dark:border-warning-400 dark:text-warning-400 dark:hover:bg-warning-900/20'
-                : 'bg-warning-600 text-white hover:bg-warning-700 dark:bg-warning-500 dark:hover:bg-warning-600',
+                ? 'border-[#eb6834] text-[#c24e1d] hover:bg-[#eb6834]/10 dark:text-[#f2a07e]'
+                : 'bg-[#eb6834]/12 text-[#c24e1d] hover:bg-[#eb6834]/20 dark:text-[#f2a07e] focus:ring-[#eb6834]/30',
             'alert' => $this->outline
-                ? 'border-orange-600 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-900/20'
-                : 'bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600',
+                ? 'border-[#eb6834] text-[#c24e1d] hover:bg-[#eb6834]/10 dark:text-[#f2a07e]'
+                : 'bg-[#eb6834] text-white hover:bg-[#d65a28] focus:ring-[#eb6834]/40',
         ];
 
-        $baseClasses = 'inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-        $borderClass = $this->outline ? 'border-2 bg-transparent' : 'border border-transparent';
+        $baseClasses = 'inline-flex items-center justify-center gap-1.5 font-semibold rounded-lg transition-colors duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed';
+        $borderClass = $this->outline ? 'border bg-transparent' : 'border border-transparent';
 
         return $baseClasses . ' ' . $borderClass . ' ' .
                ($sizeClasses[$this->size] ?? $sizeClasses['md']) . ' ' .

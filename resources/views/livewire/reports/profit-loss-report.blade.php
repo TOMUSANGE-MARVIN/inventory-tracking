@@ -1,9 +1,9 @@
 <div>
     <form wire:submit="generateReport">
         <div class="w=full gap-2 flex justify-center items-center mx-0 px-2">
-            <x-button type="button" primary wire:click="filterByDate('day')">{{ __('Today') }}</x-button>
-            <x-button type="button" info wire:click="filterByDate('month')">{{ __('This Month') }}</x-button>
-            <x-button type="button" warning wire:click="filterByDate('year')">{{ __('This Year') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByDate('day')">{{ __('Today') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByDate('month')">{{ __('This Month') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByDate('year')">{{ __('This Year') }}</x-button>
         </div>
         <div class="flex flex-wrap px-2 text-center mb-3">
             <div class="lg:w-1/3 sm:w-full px-4">

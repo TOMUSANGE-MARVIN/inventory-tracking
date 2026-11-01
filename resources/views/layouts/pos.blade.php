@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html x-data="mainState" :class="{ rtl: isRtl }" class="scroll-smooth"
-    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    :dir="isRtl ? 'rtl' : 'ltr'">
+<html x-data="mainState" :class="{ dark: isDarkMode }" class="scroll-smooth" lang="en" dir="ltr">
 
 <head>
     <meta charset="utf-8">
@@ -64,9 +62,7 @@
     @livewireScriptConfig
 </head>
 
-<body class="antialiased bg-gray-50 text-gray-900 font-sans dark:bg-gray-900 dark:text-gray-100" 
-      :dir="isRtl ? 'rtl' : 'ltr'"
-      x-bind:class="{ 'rtl-layout': isRtl }">
+<body class="antialiased bg-canvas text-gray-900 font-sans dark:bg-gray-950 dark:text-gray-100" dir="ltr">
     <div x-data="mainState" @resize.window="handleWindowResize" x-cloak>
         <div class="min-h-screen">
 

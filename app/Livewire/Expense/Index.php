@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Expense;
 
-use Livewire\Attributes\Title;
-
 use App\Exports\ExpenseExport;
 use App\Imports\ExpenseImport;
 use App\Livewire\Utils\Datatable;
@@ -15,6 +13,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -27,7 +26,7 @@ class Index extends Component
     use Datatable;
     use WithAlert;
 
-    public mixed $expense;
+    public mixed $expense = null;
 
     public bool $showModal = false;
 

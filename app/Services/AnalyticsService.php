@@ -119,7 +119,7 @@ class AnalyticsService
             $averageInventoryValue = Product::query()->sum(DB::raw('stock * cost'));
             $inventoryTurnover = $averageInventoryValue > 0 ? $totalCogs / $averageInventoryValue : 0;
 
-            $daysDiff = $dateFrom->diffInDays($dateTo) + 1;
+            $daysDiff = (int) abs($dateFrom->diffInDays($dateTo)) + 1;
             $salesPerDay = $daysDiff > 0 ? $totalSales / $daysDiff : 0;
 
             return [
@@ -145,7 +145,7 @@ class AnalyticsService
             $currentSales = Sale::query()->whereBetween('date', [$dateFrom, $dateTo])
                 ->count();
 
-            $periodDays = $dateFrom->diffInDays($dateTo);
+            $periodDays = (int) abs($dateFrom->diffInDays($dateTo));
             $previousDateFrom = $dateFrom->copy()->subDays($periodDays + 1);
             $previousDateTo = $dateFrom->copy()->subDay();
 

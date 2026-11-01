@@ -13,6 +13,7 @@
         </x-slot>
 
         <x-slot name="content">
+            <div class="invoice-doc">
             <div class="w-full px-2 my-5 mx-auto" id="printable-content">
 
                 <div class="flex flex-row mb-4">
@@ -129,32 +130,31 @@
                     </table>
                 </div>
             </div>
+            </div>
         </x-slot>
     </x-modal>
 
 
 
     <style>
-        table {
+        /* Scoped: these invoice styles used to leak onto every table on the list page. */
+        .invoice-doc table {
             width: 100%;
             border-collapse: collapse;
             border: none;
             padding-top: 4px;
         }
-
-        thead th {
+        .invoice-doc thead th {
             background-color: #2980b9;
             color: #ffffff;
             text-align: left;
             border: none;
             padding: 8px;
         }
-
-        tbody tr:nth-child(odd) {
+        .invoice-doc tbody tr:nth-child(odd) {
             background-color: #f2f2f2;
         }
-
-        td {
+        .invoice-doc td {
             border: none;
             padding: 8px;
             text-align: left;

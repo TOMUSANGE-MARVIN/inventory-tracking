@@ -169,5 +169,8 @@ class RolesAndPermissionsSeeder extends Seeder
             file_put_contents(storage_path('logs/debug_seeder.txt'), 'SEEDER ERROR: ' . $throwable->getMessage() . "\n" . $throwable->getTraceAsString());
             throw $throwable;
         }
+
+        // This seeder wipes roles above; put back the Sparkle branch-admin role.
+        \App\Support\AccessRoles::ensure();
     }
 }

@@ -37,6 +37,9 @@ class AnalyticsDashboard extends Component
 
     public array $revenueData = [];
 
+    /** Headline figures, revenue trend and top products for the selected period. */
+    public array $overview = [];
+
     public \Illuminate\Support\Collection|array $priceTrends = [];
 
     public string $search = '';
@@ -70,7 +73,7 @@ class AnalyticsDashboard extends Component
 
         try {
             $dateFrom = \Illuminate\Support\Facades\Date::parse($this->dateFrom);
-            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo);
+            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo)->endOfDay(); // include the whole last day
 
             $this->revenueData = resolve(GenerateRevenueReportAction::class)([
                 'date_from' => $dateFrom,
@@ -78,6 +81,8 @@ class AnalyticsDashboard extends Component
                 'include_products' => true,
                 'include_categories' => true,
             ]);
+
+            $this->overview = $this->buildOverview($dateFrom, $dateTo);
 
             if ($this->selectedProduct) {
                 $product = Product::query()->find($this->selectedProduct);
@@ -94,6 +99,37 @@ class AnalyticsDashboard extends Component
         } catch (Throwable $throwable) {
             $this->alert('error', __('Failed to load analytics.') . ' ' . $throwable->getMessage());
         }
+    }
+
+    private function buildOverview(\Carbon\CarbonInterface $from, \Carbon\CarbonInterface $to): array
+    {
+        $stats = $this->revenueData['overall_statistics'] ?? [];
+        $revenue = (float) ($stats['total_revenue'] ?? 0);
+
+        // Same-length period immediately before, for the growth tile.
+        $days = max(1, (int) $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay(), true) + 1);
+        $previous = (float) \App\Models\Sale::query()
+            ->whereBetween('created_at', [$from->copy()->subDays($days)->startOfDay(), $from->copy()->subDay()->endOfDay()])
+            ->where('status', '!=', \App\Enums\SaleStatus::CANCELED->value)
+            ->sum('total_amount');
+
+        $daily = collect($this->revenueData['time_breakdown']['data'] ?? [])
+            ->mapWithKeys(fn ($row) => [(string) $row['period'] => round((float) $row['revenue'], 2)])
+            ->all();
+
+        $top = collect($this->revenueData['product_breakdown']['top_products'] ?? [])
+            ->take(8)
+            ->map(fn ($p) => ['name' => $p['product_name'], 'quantity' => $p['total_quantity'], 'revenue' => $p['revenue']])
+            ->all();
+
+        return [
+            'total_revenue' => $revenue,
+            'total_sales' => (int) ($stats['total_orders'] ?? 0),
+            'average_order_value' => (float) ($stats['average_order_value'] ?? 0),
+            'growth_rate' => $previous > 0 ? round(($revenue - $previous) / $previous * 100, 2) : null,
+            'daily_revenue' => $daily,
+            'top_products' => $top,
+        ];
     }
 
     public function exportReport(string $type = 'revenue')

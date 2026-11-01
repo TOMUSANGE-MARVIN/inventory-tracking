@@ -16,7 +16,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
-#[Title('Warehouses')]
+#[Title('Locations')]
 class Index extends Component
 {
     use Datatable;

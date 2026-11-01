@@ -52,7 +52,7 @@ final class CalculateCashFlowAction
             'period' => [
                 'from' => $dateFrom->toDateString(),
                 'to' => $dateTo->toDateString(),
-                'days' => $dateTo->diffInDays($dateFrom) + 1,
+                'days' => (int) abs($dateTo->diffInDays($dateFrom)) + 1,
             ],
             'calculated_at' => now()->toISOString(),
         ];
@@ -70,7 +70,7 @@ final class CalculateCashFlowAction
             ->whereIn('payment_status', ['paid', 'partially_paid'])
             ->sum('total_amount');
 
-        $daysDiff = $dateTo->diffInDays($dateFrom) + 1;
+        $daysDiff = (int) abs($dateTo->diffInDays($dateFrom)) + 1;
 
         return [
             'sale_revenue' => round($saleRevenue, 2),
@@ -83,7 +83,7 @@ final class CalculateCashFlowAction
 
     private function calculateCashOutflows(array $expenses, Carbon $dateFrom, Carbon $dateTo): array
     {
-        $daysDiff = $dateTo->diffInDays($dateFrom) + 1;
+        $daysDiff = (int) abs($dateTo->diffInDays($dateFrom)) + 1;
 
         $expenseCategories = [
             'cogs' => $expenses['cogs'] ?? 0,

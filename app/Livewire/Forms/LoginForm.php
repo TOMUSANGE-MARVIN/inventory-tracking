@@ -33,7 +33,8 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        // Deactivated accounts (status 0) cannot sign in.
+        if (! Auth::attempt([...$this->only(['email', 'password']), 'status' => 1], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

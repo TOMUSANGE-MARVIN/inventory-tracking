@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Guest redirect with route helper (preferred over hardcoded path)
         $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
 
+        // Local HTTPS proxy for phone testing (camera needs HTTPS); only trust it from this machine.
+        $middleware->trustProxies(at: ['127.0.0.1']);
+
         // $middleware->append(Locale::class);
 
         // Livewire CSRF exception
@@ -38,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'check.installation' => CheckInstallation::class,
+            'workers.station' => App\Http\Middleware\KeepWorkersAtStation::class,
         ]);
 
         // Uncomment to apply installation check globally to web routes

@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import '@fortawesome/fontawesome-free/css/fontawesome.css';
 @import '@fortawesome/fontawesome-free/css/solid.css';
 @import 'tailwindcss';
@@ -13,40 +12,45 @@
     --font-body: 'Inter', sans-serif;
     --font-headline: 'Inter', sans-serif;
 
-    /* The Precision Architect Design System mapped to standard naming */
-    --color-primary-50: #e3f2fd;
-    --color-primary-100: #bbdefb;
-    --color-primary-200: #90caf9;
-    --color-primary-300: #64b5f6;
-    --color-primary-400: #42a5f5;
-    --color-primary-500: #0061ff; /* primary-container */
-    --color-primary-600: #004bca; /* primary */
-    --color-primary-700: #003ea8; /* on-primary-fixed-variant */
-    --color-primary-800: #00174b; /* on-primary-fixed */
-    --color-primary-900: #00174b;
+    /* Sparkle theme: blue primary, slate neutrals (navy in dark mode). */
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+    --color-primary-950: #172554;
 
-    --color-secondary-50: #fce4ec;
-    --color-secondary-100: #f8bbd0;
-    --color-secondary-200: #f48fb1;
-    --color-secondary-300: #f06292;
-    --color-secondary-400: #ec407a;
-    --color-secondary-500: #99b1fe; /* secondary-container */
-    --color-secondary-600: #435ba2; /* secondary */
-    --color-secondary-700: #294388; /* on-secondary-fixed-variant */
-    --color-secondary-800: #274187; /* on-secondary-container */
-    --color-secondary-900: #00174b; /* on-secondary-fixed */
+    --color-secondary-50: #eef2ff;
+    --color-secondary-100: #e0e7ff;
+    --color-secondary-200: #c7d2fe;
+    --color-secondary-300: #a5b4fc;
+    --color-secondary-400: #818cf8;
+    --color-secondary-500: #6366f1;
+    --color-secondary-600: #4f46e5;
+    --color-secondary-700: #4338ca;
+    --color-secondary-800: #3730a3;
+    --color-secondary-900: #312e81;
 
-    --color-gray-50: #f8f9fb; /* surface-bright */
-    --color-gray-100: #f2f4f6; /* surface-container-low */
-    --color-gray-200: #eceef0; /* surface-container */
-    --color-gray-300: #e6e8ea; /* surface-container-high */
-    --color-gray-400: #e0e3e5; /* surface-container-highest */
-    --color-gray-500: #d8dadc; /* surface-dim */
-    --color-gray-600: #c2c6d9; /* outline-variant */
-    --color-gray-700: #737687; /* outline */
-    --color-gray-800: #424656; /* on-surface-variant */
-    --color-gray-900: #191c1e; /* on-surface */
-    --color-gray-950: #191c1e; /* on-background */
+    /* A real light-to-dark scale: muted text (400/500) must be readable. */
+    --color-gray-50: #f8fafc;
+    --color-gray-100: #f1f5f9;
+    --color-gray-200: #e2e8f0;
+    --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
+    --color-gray-500: #64748b;
+    --color-gray-600: #475569;
+    --color-gray-700: #334155;
+    --color-gray-800: #1e293b;
+    --color-gray-900: #0f172a;
+    --color-gray-950: #0b1120;
+
+    /* Page plane behind the cards. */
+    --color-canvas: #f3f6fc;
 
     --color-success-50: #ecfdf5;
     --color-success-100: #d1fae5;
@@ -71,12 +75,18 @@
     --color-orange-600: #ea580c;
     --color-orange-700: #c2410c;
 
-    --shadow-soft: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+    --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.06);
 }
 
 @layer base {
+    /* Stray off-screen menus/modals must never make phones scroll sideways (clip keeps sticky working). */
+    html,
     body {
-        font-family: var(--font-body), 'Noto Sans Arabic', sans-serif;
+        overflow-x: clip;
+    }
+
+    body {
+        font-family: var(--font-body), sans-serif;
         font-size: 16px;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -98,4 +108,48 @@
 
 [data-loading] .spinner {
     display: block !important;
+}
+
+/* Shared building blocks for the Sparkle pages. */
+@layer components {
+    .panel {
+        @apply shadow-soft rounded-2xl border border-gray-200/70 bg-white dark:border-gray-800 dark:bg-gray-900;
+    }
+
+    .form-field {
+        @apply focus:border-primary-500 focus:ring-primary-500/20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100;
+    }
+
+    .btn-primary {
+        @apply bg-primary-600 shadow-primary-600/30 hover:bg-primary-700 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50 disabled:shadow-none;
+    }
+
+    .btn-secondary {
+        @apply hover:border-primary-300 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200;
+    }
+}
+
+/* Label printing: only the .print-area is printed, from the top-left of the page. */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .print-area,
+    .print-area * {
+        visibility: visible;
+    }
+
+    .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+
+/* Camera viewfinder: never taller than about a third of the screen on phones. */
+.scan-viewfinder video {
+    max-height: 36vh;
+    object-fit: cover;
 }

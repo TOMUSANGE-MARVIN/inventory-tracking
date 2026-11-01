@@ -120,7 +120,7 @@ class BreakEvenAnalysis extends Component
 
         try {
             $dateFrom = \Illuminate\Support\Facades\Date::parse($this->dateFrom);
-            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo);
+            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo)->endOfDay(); // include the whole last day
 
             switch ($this->analysisType) {
                 case 'overall':
@@ -142,7 +142,7 @@ class BreakEvenAnalysis extends Component
         }
     }
 
-    private function loadOverallBreakEven(\Carbon\Carbon $dateFrom, \Carbon\Carbon $dateTo): void
+    private function loadOverallBreakEven(Carbon $dateFrom, Carbon $dateTo): void
     {
         $calculateBreakEvenAction = new CalculateBreakEvenAction;
 
@@ -161,7 +161,7 @@ class BreakEvenAnalysis extends Component
         $this->breakEvenData['analysis'] = $this->calculateBreakEven($dateFrom, $dateTo);
     }
 
-    private function loadProductBreakEven(\Carbon\Carbon $dateFrom, \Carbon\Carbon $dateTo): void
+    private function loadProductBreakEven(Carbon $dateFrom, Carbon $dateTo): void
     {
         if (! $this->selectedProduct) {
             $this->breakEvenData = [];

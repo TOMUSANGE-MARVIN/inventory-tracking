@@ -1,10 +1,10 @@
 <div>
 
-    <x-page-container title="{{ __('Warehouses') }}" :breadcrumbs="[['label' => __('Dashboard'), 'url' => route('dashboard')], ['label' => __('Warehouses')]]" :show-filters="true">
+    <x-page-container title="{{ __('Locations') }}" :breadcrumbs="[['label' => __('Dashboard'), 'url' => route('dashboard')], ['label' => __('Locations')]]" :show-filters="true">
         <x-slot name="actions">
             @can('warehouse_create')
             <x-button wire:click="dispatchTo('warehouses.create', 'createModal')" variant="primary" icon="fas fa-plus">
-                {{ __('Create Warehouse') }}
+                {{ __('Add location') }}
             </x-button>
             @endcan
         </x-slot>
@@ -15,7 +15,7 @@
                 :pagination-options="$paginationOptions"
                 :selected-count="$this->selectedCount"
                 :search="$search"
-                search-placeholder="{{ __('Search warehouses...') }}"
+                search-placeholder="{{ __('Search locations...') }}"
                 wire:model.live.perPage="perPage"
                 wire:model.live.search="search"
                 wire:click.deleteSelected="deleteSelected"
@@ -164,7 +164,7 @@
                             @can('warehouse_create')
                             <x-button wire:click="dispatchTo('warehouses.create', 'createModal')"
                                 variant="primary" icon="fas fa-plus">
-                                {{ __('Create Warehouse') }}
+                                {{ __('Add location') }}
                             </x-button>
                             @endcan
                         </div>

@@ -48,9 +48,9 @@
             </div>
 
             <div class="flex flex-wrap gap-2 mt-4">
-                <x-button type="button" primary wire:click="filterByType('day')">{{ __('Today') }}</x-button>
-                <x-button type="button" info wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
-                <x-button type="button" warning wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
+                <x-button type="button" secondary wire:click="filterByType('day')">{{ __('Today') }}</x-button>
+                <x-button type="button" secondary wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
+                <x-button type="button" secondary wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
             </div>
 
             @if ($selected)

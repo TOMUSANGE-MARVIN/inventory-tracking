@@ -4,219 +4,164 @@ declare(strict_types=1);
 
 namespace App\Livewire\Analytics;
 
-use App\Actions\Analytics\AnalyzePriceTrendsAction;
-use App\Actions\Analytics\GenerateProductAnalyticsAction;
+use App\Enums\SaleStatus;
 use App\Models\Product;
-use Carbon\Carbon;
-use Exception;
+use App\Models\SaleDetails;
+use App\Services\ProductBoxHistory;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Validate;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Throwable;
 
-#[Layout('layouts.app')]
-
+/**
+ * One product over a period: the boxes it was recorded in, everything that
+ * happened to each box, and its unit movements and sales.
+ */
+#[Layout('layouts.app', ['plain' => true])]
+#[Title('Product analytics')]
 class ProductAnalytics extends Component
 {
     use WithPagination;
 
-    #[Validate('required|exists:products,id')]
-    public int|string|null $productId = null;
+    #[Url(as: 'product')]
+    public string $productId = '';
 
-    #[Validate('required|date')]
-    public string $dateFrom = '';
+    #[Url]
+    public string $from = '';
 
-    #[Validate('required|date|after_or_equal:dateFrom')]
-    public string $dateTo = '';
+    #[Url]
+    public string $to = '';
 
-    public array $analyticsData = [];
+    public string $search = '';
 
-    public \Illuminate\Support\Collection|array $priceTrends = [];
+    /** boxes | loose – which list is shown under the headline figures. */
+    #[Url]
+    public string $section = '';
 
-    #[Validate([
-        'comparisonProducts' => 'array|max:3',
-        'comparisonProducts.*' => 'exists:products,id',
-    ])]
-    public array $comparisonProducts = [];
+    public function mount(): void
+    {
+        $this->from = $this->validDate($this->from) ?? today()->subDays(29)->toDateString();
+        $this->to = $this->validDate($this->to) ?? today()->toDateString();
 
-    public bool $showComparison = false;
+        if ($this->productId !== '' && ! Product::query()->whereKey($this->productId)->exists()) {
+            $this->productId = '';
+        }
+    }
 
-    public function mount(int|string|null $productId = null): void
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['productId', 'from', 'to'], true)) {
+            $this->resetPage('boxes');
+            $this->resetPage('loose');
+        }
+
+        if ($property === 'productId') {
+            $this->section = '';
+        }
+    }
+
+    public function pick(string $productId): void
     {
         $this->productId = $productId;
-        $this->dateFrom = now()->subDays(30)->format('Y-m-d');
-        $this->dateTo = now()->format('Y-m-d');
-
-        if ($this->productId) {
-            $this->loadProductAnalytics();
-        }
+        $this->search = '';
+        $this->section = '';
+        $this->resetPage('boxes');
+        $this->resetPage('loose');
     }
 
-    public function updatedProductId(): void
+    /** Quick ranges: this week, this month, last month, last 30 days, this year. */
+    public function range(string $preset): void
     {
-        $this->validateOnly('productId');
-        $this->loadProductAnalytics();
+        [$from, $to] = match ($preset) {
+            'week' => [today()->startOfWeek(), today()],
+            'last_month' => [today()->subMonthNoOverflow()->startOfMonth(), today()->subMonthNoOverflow()->endOfMonth()],
+            'month' => [today()->startOfMonth(), today()],
+            'year' => [today()->startOfYear(), today()],
+            default => [today()->subDays(29), today()],
+        };
+
+        $this->from = $from->toDateString();
+        $this->to = $to->toDateString();
+        $this->resetPage('boxes');
     }
 
-    public function updatedDateFrom(): void
-    {
-        $this->validateOnly('dateFrom');
-
-        if ($this->productId) {
-            $this->loadProductAnalytics();
-        }
-    }
-
-    public function updatedDateTo(): void
-    {
-        $this->validateOnly('dateTo');
-
-        if ($this->productId) {
-            $this->loadProductAnalytics();
-        }
-    }
-
-    public function loadProductAnalytics(): void
-    {
-        if (! $this->productId) {
-            return;
-        }
-
-        try {
-            $product = Product::query()->findOrFail($this->productId);
-            $dateFrom = \Illuminate\Support\Facades\Date::parse($this->dateFrom);
-            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo);
-
-            // Generate product analytics
-            $generateProductAnalyticsAction = new GenerateProductAnalyticsAction;
-            $this->analyticsData = $generateProductAnalyticsAction($product, [
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-            ]);
-
-            // Get price trends
-            $analyzePriceTrendsAction = new AnalyzePriceTrendsAction;
-            $this->priceTrends = $analyzePriceTrendsAction->getPriceHistory($product);
-
-            // Load comparison data if products are selected
-            if ($this->comparisonProducts !== []) {
-                $this->loadComparisonData($dateFrom, $dateTo);
-            }
-        } catch (Exception $exception) {
-            session()->flash('error', 'Failed to load product analytics: ' . $exception->getMessage());
-        }
-    }
-
-    public function addComparisonProduct(mixed $productId): void
-    {
-        if (! in_array($productId, $this->comparisonProducts) && count($this->comparisonProducts) < 3) {
-            $this->comparisonProducts[] = $productId;
-            $this->showComparison = true;
-            $this->loadProductAnalytics();
-        }
-    }
-
-    public function removeComparisonProduct(mixed $productId): void
-    {
-        $this->comparisonProducts = array_filter($this->comparisonProducts, fn ($id) => $id != $productId);
-
-        if ($this->comparisonProducts === []) {
-            $this->showComparison = false;
-        }
-
-        $this->loadProductAnalytics();
-    }
-
-    public function toggleComparison(): void
-    {
-        $this->showComparison = ! $this->showComparison;
-
-        if (! $this->showComparison) {
-            $this->comparisonProducts = [];
-        }
-    }
-
-    private function loadComparisonData(Carbon $dateFrom, Carbon $dateTo): void
-    {
-        $generateProductAnalyticsAction = new GenerateProductAnalyticsAction;
-        $analyzePriceTrendsAction = new AnalyzePriceTrendsAction;
-
-        $this->analyticsData['comparison'] = [];
-
-        foreach ($this->comparisonProducts as $comparisonProduct) {
-            $product = Product::query()->find($comparisonProduct);
-
-            if ($product) {
-                $this->analyticsData['comparison'][$comparisonProduct] = [
-                    'product' => $product,
-                    'analytics' => $generateProductAnalyticsAction($product, [
-                        'date_from' => $dateFrom,
-                        'date_to' => $dateTo,
-                    ]),
-                    'price_trends' => $analyzePriceTrendsAction->getPriceHistory($product),
-                ];
-            }
-        }
-    }
-
-    public function exportAnalytics()
+    private function validDate(string $value): ?string
     {
         try {
-            $product = Product::query()->find($this->productId);
-            $filename = 'product_analytics_' . $product->code . '_' . now()->format('Y-m-d_H-i-s') . '.json';
-
-            return response()->streamDownload(function (): void {
-                $exportData = [
-                    'product_id' => $this->productId,
-                    'date_range' => [
-                        'from' => $this->dateFrom,
-                        'to' => $this->dateTo,
-                    ],
-                    'analytics' => $this->analyticsData,
-                    'price_trends' => $this->priceTrends,
-                ];
-
-                $generator = function () use ($exportData) {
-                    yield '{';
-                    $first = true;
-                    foreach ($exportData as $key => $value) {
-                        if (! $first) {
-                            yield ',';
-                        }
-
-                        yield '"' . $key . '":' . json_encode($value);
-                        $first = false;
-                    }
-
-                    yield '}';
-                };
-
-                foreach ($generator() as $chunk) {
-                    echo $chunk;
-                }
-            }, $filename, [
-                'Content-Type' => 'application/json',
-            ]);
-        } catch (Exception $exception) {
-            session()->flash('error', 'Failed to export analytics: ' . $exception->getMessage());
+            return $value !== '' ? Carbon::parse($value)->toDateString() : null;
+        } catch (Throwable) {
+            return null;
         }
+    }
+
+    /** @return array{0: Carbon, 1: Carbon} */
+    private function period(): array
+    {
+        $from = Carbon::parse($this->validDate($this->from) ?? today()->subDays(29));
+        $to = Carbon::parse($this->validDate($this->to) ?? today());
+
+        return [$from->min($to), $to->max($from)];
     }
 
     #[Computed]
-    public function products()
+    public function product(): ?Product
     {
-        return Product::query()->select('id', 'name', 'code')
+        return $this->productId !== '' ? Product::query()->with('category:id,name')->find($this->productId) : null;
+    }
+
+    #[Computed]
+    public function matches()
+    {
+        return Product::query()
+            ->select('id', 'name', 'code')
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($q) => $q
+                ->where('name', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%")))
             ->orderBy('name')
+            ->limit(30)
             ->get();
     }
 
-    public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+    private function sales(Carbon $from, Carbon $to): array
     {
-        $selectedProduct = $this->productId ? Product::query()->find($this->productId) : null;
+        $row = SaleDetails::query()
+            ->where('product_id', $this->productId)
+            ->whereHas('sale', fn ($q) => $q->whereBetween('created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+                ->where('status', '!=', SaleStatus::CANCELED->value))
+            ->selectRaw('COALESCE(SUM(quantity), 0) as qty, COALESCE(SUM(CASE WHEN sub_total > 0 THEN sub_total ELSE price * quantity END), 0) as revenue')
+            ->first();
+
+        return ['qty' => (int) $row->qty, 'revenue' => (float) $row->revenue];
+    }
+
+    public function render()
+    {
+        [$from, $to] = $this->period();
+        $product = $this->product;
+        $history = $product ? new ProductBoxHistory((string) $product->id, $from, $to) : null;
+        $boxes = $history?->boxes();
+        $loose = $history?->looseUnits();
+
+        // Show loose items straight away for products that never came in boxes.
+        $shown = in_array($this->section, ['boxes', 'loose'], true)
+            ? $this->section
+            : ($boxes && $boxes->total() === 0 && $loose->total() > 0 ? 'loose' : 'boxes');
 
         return view('livewire.analytics.product-analytics', [
-            'selectedProduct' => $selectedProduct,
+            'shown' => $shown,
+            'loose' => $loose,
+            'looseDetails' => $loose && $shown === 'loose' ? $history->looseDetails($loose->items()) : collect(),
+            'product' => $product,
+            'periodFrom' => $from,
+            'periodTo' => $to,
+            'summary' => $history?->summary(),
+            'boxes' => $boxes,
+            'details' => $boxes ? $history->details($boxes->items()) : collect(),
+            'sales' => $product ? $this->sales($from, $to) : null,
         ]);
     }
 }

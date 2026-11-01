@@ -97,7 +97,7 @@
         </div>
         <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
             @foreach ($sliders as $index => $slider)
-                <div class="w-14 h-1 bg-gray-300 cursor-pointer transition-colors hover:bg-[#b00303] bg-opacity-50"
+                <div class="w-14 h-1 bg-gray-300/50 cursor-pointer transition-colors hover:bg-[#b00303]"
                     :class="{ 'bg-[#fc1b1b]!': active === {{ $index }} }"
                     @click="goToSlide({{ $index }})"></div>
             @endforeach

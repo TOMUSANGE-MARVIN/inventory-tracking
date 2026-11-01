@@ -1,5 +1,5 @@
 <div x-data="{ mobileMenuOpen: false, open: false }" x-on:click.outside="open = false" class="relative bg-white drop-shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="w-full px-4 sm:px-6">
         <div class="flex justify-between items-center border-gray-100 md:space-x-10">
             <div class="flex justify-start">
                 <a href="{{ route('front.home') }}" title="{{ $website_title }}">

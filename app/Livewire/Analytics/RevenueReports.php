@@ -7,7 +7,6 @@ namespace App\Livewire\Analytics;
 use App\Actions\Analytics\GenerateRevenueReportAction;
 use App\Models\Category;
 use App\Models\Product;
-use Carbon\Carbon;
 use Exception;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
@@ -100,7 +99,7 @@ class RevenueReports extends Component
     {
         try {
             $dateFrom = \Illuminate\Support\Facades\Date::parse($this->dateFrom);
-            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo);
+            $dateTo = \Illuminate\Support\Facades\Date::parse($this->dateTo)->endOfDay(); // include the whole last day
 
             $options = [
                 'time_breakdown' => $this->reportType,

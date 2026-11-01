@@ -101,7 +101,8 @@ final class GenerateProductAnalyticsAction
 
     private function getPerformanceMetrics(Product $product, \Illuminate\Database\Eloquent\Builder $baseQuery, Carbon $dateFrom, Carbon $dateTo): array
     {
-        $daysDiff = $dateTo->diffInDays($dateFrom) ?: 1;
+        // Whole days, at least one (diffInDays returns a signed float in Carbon 3).
+        $daysDiff = max(1, (int) abs($dateTo->diffInDays($dateFrom)));
         $totalQuantity = $baseQuery->sum('quantity') ?? 0;
         $totalSales = $baseQuery->count() ?? 0;
 
@@ -167,7 +168,7 @@ final class GenerateProductAnalyticsAction
             'total_profit' => round($totalProfit, 2),
             'profit_margin_percentage' => round($profitMargin, 2),
             'markup_percentage' => round($markupPercentage, 2),
-            'average_profit_per_unit' => $items->count() > 0 ? round($totalProfit / $items->sum('quantity'), 2) : 0,
+            'average_profit_per_unit' => $items->sum('quantity') > 0 ? round($totalProfit / $items->sum('quantity'), 2) : 0,
         ];
     }
 

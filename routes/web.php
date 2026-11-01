@@ -72,7 +72,15 @@ use App\Livewire\Settings\Index as SettingsIndex;
 use App\Livewire\Shipping\Index as ShippingIndex;
 use App\Livewire\Suppliers\Details as SupplierDetails;
 use App\Livewire\Suppliers\Index as SuppliersIndex;
-use App\Livewire\Transfer\Index as TransferIndex;
+use App\Livewire\Tracking\Arrivals as TrackingArrivals;
+use App\Livewire\Tracking\Dispatch as TrackingDispatch;
+use App\Livewire\Tracking\History as TrackingHistory;
+use App\Livewire\Tracking\Labels as TrackingLabels;
+use App\Livewire\Tracking\Lookup as TrackingLookup;
+use App\Livewire\Tracking\Overview as TrackingOverview;
+use App\Livewire\Tracking\Receive as TrackingReceive;
+use App\Livewire\Tracking\Station as TrackingStation;
+use App\Livewire\Tracking\Transfers as TrackingTransfers;
 use App\Livewire\Users\Index as UsersIndex;
 use App\Livewire\Users\Profile as ProfileIndex;
 use App\Livewire\Warehouses\Index as WarehouseIndex;
@@ -118,11 +126,43 @@ Route::prefix('install')->name('installation.')->group(function () {
 
 Route::get('/', fn () => redirect()->route('dashboard'));
 
-Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'role:admin']], function () {
+// Workers (and admins) at the scan station: record each client worked on with an item.
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'role:admin|branch-admin|worker']], function () {
+    Route::livewire('/tracking/station', TrackingStation::class)->name('tracking.station');
+});
+
+// Stock tracking: open to the super admin (role "admin") and branch admins.
+// Branch admins only ever see their own branches (see App\Support\Branches).
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'workers.station', 'role:admin|branch-admin']], function () {
+    // Sparkle: the stock-tracking dashboard is the home page; the upstream sales dashboard moves aside.
+    Route::livewire('/dashboard', TrackingOverview::class)->name('dashboard');
+    Route::livewire('/user/profile', ProfileIndex::class)->name('profile.index');
+
+    // Scan-based stock tracking (head office -> branches)
+    Route::prefix('tracking')->name('tracking.')->group(function () {
+        Route::livewire('/', TrackingOverview::class)->name('overview');
+        Route::livewire('/arrivals', TrackingArrivals::class)->name('arrivals');
+        Route::livewire('/transfers', TrackingTransfers::class)->name('transfers');
+        Route::livewire('/dispatch', TrackingDispatch::class)->name('dispatch');
+        Route::livewire('/transfers/{transfer}/receive', TrackingReceive::class)->name('receive');
+        Route::livewire('/lookup', TrackingLookup::class)->name('lookup');
+        Route::livewire('/history', TrackingHistory::class)->name('history');
+        Route::livewire('/reports', App\Livewire\Tracking\Reports::class)->name('reports');
+        Route::get('/reports/export', App\Http\Controllers\TrackingReportExportController::class)->name('reports.export');
+        Route::livewire('/labels', TrackingLabels::class)->name('labels');
+        Route::livewire('/refills', App\Livewire\Tracking\Refills::class)->name('refills');
+        Route::livewire('/stock-take', App\Livewire\Tracking\StockTakes::class)->name('stocktakes');
+    });
+});
+
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'workers.station', 'role:admin']], function () {
     // Change lang
     Route::get('/lang/{locale}', [HomeController::class, 'changeLanguage'])->name('changelanguage');
 
-    Route::livewire('/dashboard', Dashboard::class)->name('dashboard');
+    Route::livewire('/sales-dashboard', Dashboard::class)->name('business.dashboard');
+
+    // Super admin only: who can sign in, their role and branch.
+    Route::livewire('/team', App\Livewire\Team\Index::class)->name('team.index');
 
     // POS
     Route::livewire('/pos', PosIndex::class)->name('pos.index');
@@ -158,7 +198,7 @@ Route::prefix('desktop')->name('desktop.')->group(function () {
     Route::post('/errors/js', [App\Native\Controllers\DesktopController::class, 'handleJavaScriptError'])->name('errors.js');
 });
 
-Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'role:admin']], function () {
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'workers.station', 'role:admin']], function () {
     // Currencies
     Route::livewire('/currencies', CurrencyIndex::class)->name('currencies.index');
 
@@ -247,7 +287,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'rol
     });
 
     // User Profile
-    Route::livewire('/user/profile', ProfileIndex::class)->name('profile.index');
 
     // Users
     Route::livewire('/users', UsersIndex::class)->name('users.index');
@@ -309,7 +348,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'rol
     });
 
     // Transfers
-    Route::livewire('/transfers', TransferIndex::class)->name('transfers.index');
+    // Upstream's transfer screens were never finished; the scan-based tracking transfers replace them.
+    Route::redirect('/transfers', '/admin/tracking/transfers')->name('transfers.index');
 
     // Language Settings
     Route::livewire('/languages', LanguageIndex::class)->name('languages.index');

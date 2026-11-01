@@ -47,9 +47,9 @@
                     <div class="flex items-center gap-2">
                         <x-input wire:model.live="startDate" type="date" name="startDate" />
                         <x-input wire:model.live="endDate" type="date" name="endDate" />
-                        <x-button type="button" primary size="sm" wire:click="filterByType('day')">{{ __('Today') }}</x-button>
-                        <x-button type="button" info size="sm" wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
-                        <x-button type="button" warning size="sm" wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
+                        <x-button type="button" secondary size="sm" wire:click="filterByType('day')">{{ __('Today') }}</x-button>
+                        <x-button type="button" secondary size="sm" wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
+                        <x-button type="button" secondary size="sm" wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
                     </div>
                 </x-slot>
             </x-datatable.filters>

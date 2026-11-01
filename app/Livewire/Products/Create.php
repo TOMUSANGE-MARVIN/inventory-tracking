@@ -5,36 +5,22 @@ declare(strict_types=1);
 namespace App\Livewire\Products;
 
 use App\Livewire\Forms\ProductForm;
-use App\Livewire\Utils\WithModels;
-use App\Models\Brand;
 use App\Models\Category;
-use App\Models\ProductAttribute;
-use App\Models\Warehouse;
 use App\Services\ProductService;
+use App\Support\Barcode;
 use App\Traits\WithAlert;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 class Create extends Component
 {
     use WithAlert;
-    use WithFileUploads;
-    use WithModels;
 
     public bool $createModal = false;
 
-    public int $step = 1;
-
     public ProductForm $form;
-
-    #[Computed]
-    public function productAttributes()
-    {
-        return ProductAttribute::all()->mapWithKeys(fn ($attr) => [$attr->id => ''])->all();
-    }
 
     public function render(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
@@ -48,44 +34,38 @@ class Create extends Component
     {
         $this->resetErrorBag();
         $this->form->reset();
-        $this->step = 1;
-        $this->form->unit = 'pcs';
-        $this->form->barcode_symbology = 'C128';
-
         $this->createModal = true;
     }
 
     public function create(ProductService $productService): void
     {
+        abort_if(Gate::denies('product_create'), 403);
+
         $this->form->validate();
+        $product = $productService->create($this->form->toProduct(), $this->form->stock_alert);
 
-        $data = $this->form->all();
-        $data['warehouse_id'] = $this->warehouse?->id;
-
-        $productService->create($data);
-
-        $this->alert('success', __('Product created successfully'));
-
+        $this->alert('success', __(':name added. Receive its stock under Receive new stock.', ['name' => $product->name]));
         $this->dispatch('refreshIndex')->to(Index::class);
-
         $this->createModal = false;
     }
 
     #[Computed]
-    public function warehouse()
+    public function categories(): array
     {
-        return Warehouse::query()->select('name', 'id')->first();
+        return Category::query()->orderBy('name')->pluck('name', 'id')->all();
     }
 
-    #[Computed]
-    public function categories()
+    /** Fill in a catalogue code for a product that has no barcode of its own. */
+    public function generateCode(): void
     {
-        return Category::query()->pluck('name', 'id')->toArray();
+        $this->form->code = Barcode::nextCatalogueCode();
     }
 
-    #[Computed]
-    public function brands()
+    /** Clean up what a USB scanner types (it often adds spaces or a newline). */
+    public function updatedForm(mixed $value, string $key): void
     {
-        return Brand::query()->pluck('name', 'id')->toArray();
+        if ($key === 'code') {
+            $this->form->code = trim((string) $this->form->code);
+        }
     }
 }

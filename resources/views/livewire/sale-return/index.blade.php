@@ -1,4 +1,9 @@
 <div>
+    <x-theme.breadcrumb :title="__('Sale returns')" :parent="url()->current()" :parentName="__('Sale returns')">
+        @can('sale_return_create')
+            <x-button primary href="{{ route('sale-returns.create') }}" icon="fas fa-plus">{{ __('New sale return') }}</x-button>
+        @endcan
+    </x-theme.breadcrumb>
     <div class="flex flex-wrap justify-center">
         <div class="lg:w-1/2 md:w-1/2 sm:w-full flex flex-wrap my-2">
             <x-select wire:model.live="perPage"

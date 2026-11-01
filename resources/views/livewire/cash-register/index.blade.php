@@ -51,9 +51,9 @@
             </div>
         </div>
         <div class="gap-2 inline-flex items-center mx-0 px-2">
-            <x-button type="button" primary wire:click="filterByType('day')">{{ __('Today') }}</x-button>
-            <x-button type="button" info wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
-            <x-button type="button" warning wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByType('day')">{{ __('Today') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByType('month')">{{ __('This Month') }}</x-button>
+            <x-button type="button" secondary wire:click="filterByType('year')">{{ __('This Year') }}</x-button>
         </div>
     </div>
     <x-table>

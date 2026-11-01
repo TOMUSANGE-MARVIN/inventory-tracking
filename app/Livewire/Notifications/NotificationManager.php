@@ -37,11 +37,11 @@ class NotificationManager extends Component
     #[Computed(persist: true)]
     public function lowQuantityCount(): int
     {
-        return ProductWarehouse::with('product')
-            ->select('product_id', 'qty', 'stock_alert')
+        // Only rows with a re-order level set count (the default level is 0).
+        return ProductWarehouse::query()
+            ->where('stock_alert', '>', 0)
             ->whereColumn('qty', '<=', 'stock_alert')
-            ->limit(50)
-            ->get();
+            ->count();
     }
 
     public function updatedSearchTerm(): void

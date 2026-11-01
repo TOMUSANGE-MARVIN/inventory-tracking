@@ -1,6 +1,6 @@
 <div>
     <div class="print:hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="flex items-center justify-between py-4">
                 <div>
                     <div class="text-sm text-gray-500 mb-1">
@@ -28,7 +28,7 @@
 
     <!-- Filters -->
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Date Range') }}</label>

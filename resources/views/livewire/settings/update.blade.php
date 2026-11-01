@@ -10,7 +10,7 @@
             </x-button>
         @endif
 
-        <div x-show="showConfirmationDialog" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div x-show="showConfirmationDialog" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
             <div class="bg-white rounded-lg p-4">
                 <div class="text-xl font-bold mb-2">{{ __('Confirm Update') }}</div>
                 <div class="mb-4">{{ __('Are you sure you want to update the system?') }}</div>
@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div x-show="showProgressBar" class="h-screen w-screen fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        <div x-show="showProgressBar" class="h-screen w-screen fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
             x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"

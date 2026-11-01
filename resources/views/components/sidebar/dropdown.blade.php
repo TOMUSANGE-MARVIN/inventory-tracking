@@ -1,24 +1,11 @@
-@props(['active' => false, 'title' => ''])
+@props(['active' => false, 'title' => '', 'icon' => null])
 
-<div class="relative" x-data="{ open: @json($active) }">
-    <x-sidebar.link collapsible title="{{ $title }}" @click="open = !open" isActive="{{ $active }}">
-        @if ($icon ?? false)
-            <x-slot name="icon">
-                {{ $icon }}
-            </x-slot>
-        @endif
-        @if ($add ?? false)
-            <x-slot name="add">
-                {{ $add }}
-            </x-slot>
-        @endif
-    </x-sidebar.link>
+<div x-data="{ open: @json((bool) $active) }">
+    <x-sidebar.link collapsible title="{{ $title }}" @click="open = !open" :isActive="false" :icon="$icon"
+        class="{{ $active ? '!text-gray-900 dark:!text-white' : '' }}" />
 
-    <div class="mt-1 ps-6 border-s border-gray-200 dark:border-gray-700"
-        x-show="open && (isSidebarOpen || isSidebarHovered)"
-        x-collapse>
-        <ul class="pb-1 pt-1 text-sm font-medium space-y-0.5">
-            {{ $slot }}
-        </ul>
+    <div class="mt-0.5 ml-5 pl-3 border-l border-gray-200 dark:border-gray-800 space-y-0.5"
+        x-show="open && (isSidebarOpen || isSidebarHovered)" x-collapse>
+        {{ $slot }}
     </div>
 </div>

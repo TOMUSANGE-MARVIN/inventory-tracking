@@ -5,141 +5,86 @@ declare(strict_types=1);
 namespace App\Livewire\Forms;
 
 use App\Models\Product;
-use Livewire\Attributes\Validate;
+use App\Support\Barcode;
+use Illuminate\Validation\Rule;
 use Livewire\Form;
 
+/**
+ * The basics a salon product needs. Stock is never typed in here: it arrives
+ * through "Receive new stock" so every unit gets its own label.
+ */
 class ProductForm extends Form
 {
-    #[Validate('required|min:3|max:255')]
+    public const UNITS = ['pcs', 'bottle', 'tub', 'tube', 'jar', 'drum', 'jerrycan', 'sachet', 'pack', 'kit'];
+
+    public ?string $productId = null;
+
     public string $name = '';
 
-    #[Validate('nullable|string|max:255')]
     public ?string $code = null;
 
-    #[Validate('nullable|string|max:255')]
-    public ?string $slug = null;
-
-    #[Validate('required|integer')]
     public ?int $category_id = null;
 
-    #[Validate('nullable|integer')]
-    public ?int $brand_id = null;
+    public string $unit = 'bottle';
 
-    #[Validate('required|string|max:255')]
-    public string $barcode_symbology = 'C128';
+    public $price = null;
 
-    #[Validate('required|numeric|min:0')]
-    public float $cost = 0;
+    public $cost = null;
 
-    #[Validate('required|numeric|min:0')]
-    public float $price = 0;
+    public int $stock_alert = 0;
 
-    #[Validate('required|string|max:255')]
-    public string $unit = 'pcs';
+    public bool $is_refillable = false;
 
-    #[Validate('required|integer|min:0')]
-    public int $stock_alert = 10;
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'min:2', 'max:255'],
+            'code' => ['required', 'string', 'max:64', Rule::unique('products', 'code')->ignore($this->productId)->whereNull('deleted_at')],
+            'category_id' => ['required', 'exists:categories,id'],
+            'unit' => ['required', Rule::in(self::UNITS)],
+            'price' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
+            'stock_alert' => ['required', 'integer', 'min:0'],
+            'is_refillable' => ['boolean'],
+        ];
+    }
 
-    #[Validate('required|integer|min:0')]
-    public int $order_tax = 0;
-
-    #[Validate('required|integer|min:0')]
-    public int $tax_amount = 0;
-
-    #[Validate('required|integer')]
-    public int $tax_type = 0;
-
-    #[Validate('nullable|string')]
-    public ?string $note = null;
-
-    #[Validate('nullable|string')]
-    public ?string $description = null;
-
-    #[Validate('nullable')]
-    public mixed $image = '';
-
-    #[Validate('nullable|array')]
-    public mixed $gallery = [];
-
-    #[Validate([
-        'options.*.type' => '',
-        'options.*.value' => '',
-    ])]
-    public array $options = [];
-
-    #[Validate('nullable|boolean')]
-    public ?bool $availability = null;
-
-    #[Validate('nullable|string|max:255')]
-    public ?string $seasonality = null;
-
-    #[Validate('nullable|string')]
-    public ?string $embeded_video = null;
-
-    #[Validate('nullable|string')]
-    public ?string $usage = null;
-
-    #[Validate([
-        'productWarehouse.*.qty' => 'numeric',
-        'productWarehouse.*.price' => 'numeric',
-        'productWarehouse.*.old_price' => 'numeric',
-        'productWarehouse.*.cost' => 'numeric',
-        'productWarehouse.*.stock_alert' => 'numeric',
-        'productWarehouse.*.is_ecommerce' => 'boolean',
-    ])]
-    public array $productWarehouse = [
-        'qty' => 0,
-        'old_price' => 0,
-        'is_ecommerce' => false,
-    ];
-
-    #[Validate('array')]
-    public array $selectedAttributes = [];
-
-    #[Validate('boolean')]
-    public bool $featured = false;
-
-    #[Validate('boolean')]
-    public bool $best = false;
-
-    #[Validate('boolean')]
-    public bool $hot = false;
+    public function validationAttributes(): array
+    {
+        return [
+            'code' => __('barcode'),
+            'category_id' => __('category'),
+            'price' => __('selling price'),
+            'cost' => __('cost price'),
+            'stock_alert' => __('re-order level'),
+        ];
+    }
 
     public function setProduct(Product $product): void
     {
+        $this->productId = $product->id;
         $this->name = $product->name;
         $this->code = $product->code;
-        $this->slug = $product->slug;
         $this->category_id = $product->category_id;
-        $this->brand_id = $product->brand_id;
-        $this->barcode_symbology = $product->barcode_symbology ?? 'C128';
-        $this->unit = $product->unit ?? 'pcs';
-        $this->tax_amount = $product->tax_amount ?? 0;
-        $this->order_tax = $product->tax_amount ?? 0;
-        $this->tax_type = $product->tax_type ?? 0;
-        $this->description = $product->description;
-        $this->note = json_decode($product->description ?? '""', true) ?: $product->description;
-        $this->embeded_video = $product->embeded_video;
-        $this->usage = $product->usage;
-        $this->availability = (bool) $product->availability;
-        $this->seasonality = $product->seasonality;
-        $this->options = $product->options ?? [['type' => '', 'value' => '']];
-        $this->featured = $product->featured;
-        $this->best = $product->best;
-        $this->hot = $product->hot;
+        $this->unit = in_array($product->unit, self::UNITS, true) ? $product->unit : 'pcs';
+        $this->price = (float) $product->price;
+        $this->cost = (float) $product->cost;
+        $this->stock_alert = (int) ($product->warehouses()->max('product_warehouse.stock_alert') ?? 0);
+        $this->is_refillable = (bool) $product->is_refillable;
+    }
 
-        $this->productWarehouse = $product->warehouses->mapWithKeys(static fn ($warehouse): array => [$warehouse->id => [
-            'price' => $warehouse->pivot->price,
-            'qty' => $warehouse->pivot->qty,
-            'cost' => $warehouse->pivot->cost,
-            'old_price' => $warehouse->pivot->old_price,
-            'stock_alert' => $warehouse->pivot->stock_alert,
-            'is_ecommerce' => $warehouse->pivot->is_ecommerce,
-        ]])->all();
-
-        // Attributes are not defined on Product model
-        // $this->selectedAttributes = $product->attributes->mapWithKeys(function ($attr) {
-        //     return [$attr->id => $attr->pivot->value];
-        // })->toArray();
+    /** Values for the products table. */
+    public function toProduct(): array
+    {
+        return [
+            'name' => trim($this->name),
+            'code' => trim((string) $this->code),
+            'barcode_symbology' => Barcode::detect($this->code),
+            'category_id' => $this->category_id,
+            'unit' => $this->unit,
+            'price' => (float) $this->price,
+            'cost' => (float) ($this->cost ?? 0),
+            'is_refillable' => $this->is_refillable,
+        ];
     }
 }

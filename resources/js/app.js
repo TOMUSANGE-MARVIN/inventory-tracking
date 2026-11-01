@@ -17,6 +17,13 @@ window.ApexCharts = ApexCharts;
 import Sortable from 'sortablejs';
 window.Sortable = Sortable;
 
+import stockScanner from './components/stock-scanner';
+Alpine.data('stockScanner', stockScanner);
+
+import vizChart, { PALETTE } from './components/viz-chart';
+Alpine.data('vizChart', vizChart);
+window.vizPalette = PALETTE;
+
 import './theme-generator';
 
 import appModal from './components/modal';
@@ -57,14 +64,18 @@ if (window.localStorage.getItem('rtl') !== null) {
 }
 
 // Livewire Navigation Hooks - Ensure dir attribute stays in sync
-document.addEventListener('livewire:navigated', () => {
-    const isRtl = Theme.getRtl();
-    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-    document.documentElement.classList.toggle('rtl', isRtl);
-    if (window.PerfectScrollbar) {
-        window.dispatchEvent(new CustomEvent('ps-reinitialize'));
-    }
-}, { passive: true });
+document.addEventListener(
+    'livewire:navigated',
+    () => {
+        const isRtl = Theme.getRtl();
+        document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+        document.documentElement.classList.toggle('rtl', isRtl);
+        if (window.PerfectScrollbar) {
+            window.dispatchEvent(new CustomEvent('ps-reinitialize'));
+        }
+    },
+    { passive: true }
+);
 
 // Global Alpine Components
 Alpine.data('loadingMask', () => ({

@@ -109,46 +109,39 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap w-full">
-                <div class="w-full grid gap-3 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 px-2 mt-5 overflow-y-auto">
+            <div class="@container flex flex-wrap w-full">
+                {{-- Columns follow the picker's own width: it sits in half-width columns on some pages. --}}
+                <div class="w-full grid gap-3 grid-cols-1 @xs:grid-cols-2 @2xl:grid-cols-3 @4xl:grid-cols-4 px-2 mt-4 overflow-y-auto">
                     @forelse($products as $product)
-                        <div wire:click="selectProduct('{{ $product->id }}')" wire:key="product-{{ $product->id }}"
-                            class="group select-none cursor-pointer transition-all duration-200 ease-in-out transform hover:-translate-y-1 hover:scale-105 overflow-hidden bg-white shadow-sm hover:shadow-xl w-full py-8 relative border border-gray-200 hover:border-green-500 rounded-xl"
-                            style="{{ $product->image ? 'background-image: url(' . asset('images/products/') . $product->image . '); background-size: cover; background-position: center; background-blend-mode: overlay; background-color: rgba(255,255,255,0.9);' : '' }}">
-                            
-                            <!-- Hover Overlay -->
-                            <div class="absolute inset-0 bg-green-500 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
-                                <span class="opacity-0 group-hover:opacity-100 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                    <i class="fas fa-plus mr-1"></i> {{ __('Add') }}
+                        @php($warehouse = $product->warehouses->where('id', $warehouse_id)->first())
+                        @php($stock = $warehouse ? (int) $warehouse->pivot->qty : null)
+                        <button type="button" wire:click="selectProduct('{{ $product->id }}')" wire:key="product-{{ $product->id }}"
+                            class="group relative text-left w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 shadow-sm hover:border-primary-400 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition">
+                            <div class="flex items-start gap-3">
+                                <span class="w-11 h-11 shrink-0 rounded-lg overflow-hidden grid place-items-center bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300">
+                                    @if ($product->image)
+                                        <img src="{{ asset('images/products/' . $product->image) }}" alt="" class="w-full h-full object-cover">
+                                    @else
+                                        <i class="fas fa-pump-soap"></i>
+                                    @endif
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2">{{ $product->name }}</span>
+                                    <span class="block mt-0.5 font-mono text-[11px] text-gray-500 truncate">{{ $product->code }}</span>
                                 </span>
                             </div>
-
-                            @php($warehouse = $product->warehouses->where('id', $warehouse_id)->first())
-                            <div
-                                class="inline-block px-2 py-1 text-center font-bold text-xs align-baseline leading-none text-white bg-blue-500 mb-3 absolute top-2 right-2 rounded-lg shadow-sm">
-                                {{ $product->code }}
+                            <div class="mt-3 flex items-center justify-between gap-2">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white">{{ format_currency($warehouse ? $warehouse->pivot->price : ($product->price ?? 0)) }}</span>
+                                @if ($stock === null)
+                                    <span class="text-[11px] text-gray-500">{{ __('Pick a location') }}</span>
+                                @elseif ($stock > 0)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#1baf7a]/12 text-[#0f8a5f] dark:text-[#5fd3a8]">{{ $stock }} {{ __('in stock') }}</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#d03b3b]/12 text-[#b02f2f] dark:text-[#f08a8a]"><i class="fas fa-times-circle"></i>{{ __('Out of stock') }}</span>
+                                @endif
                             </div>
-                            <div class="flex flex-col py-4 px-3 text-sm gap-y-2 -my-auto items-center relative z-10">
-                                <h6 class="text-md text-center font-bold text-gray-800 mb-1 line-clamp-2">
-                                    {{ $product->name }}
-                                </h6>
-                                <p class="mb-0 text-center font-black text-lg text-green-600">
-                                    {{ format_currency($warehouse ? $warehouse->pivot->price : ($product->price ?? 0)) }}
-                                </p>
-                            </div>
-                            {{-- if stock is 0 not need to show --}}
-                            @if ($warehouse && $warehouse->pivot->qty > 0)
-                                <div
-                                    class="w-full block p-1.5 text-center font-bold text-xs text-white bg-gray-800 absolute bottom-0 opacity-90">
-                                    <i class="fas fa-box-open mr-1"></i> {{ __('Stock') }}: {{ $warehouse->pivot->qty }}
-                                </div>
-                            @else
-                                <div
-                                    class="w-full block p-1.5 text-center font-bold text-xs text-white bg-red-500 absolute bottom-0">
-                                    <i class="fas fa-times-circle mr-1"></i> {{ __('Out of Stock') }}
-                                </div>
-                            @endif
-                        </div>
+                            <span class="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary-600 text-white grid place-items-center text-[10px] opacity-0 group-hover:opacity-100 transition"><i class="fas fa-plus"></i></span>
+                        </button>
                     @empty
                         <div class="col-span-full w-full px-2 py-3 mb-4 border rounded-sm">
                             <span class="inline-block align-middle mr-8">

@@ -2,10 +2,10 @@
     <!-- Header Area -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-tight">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {{ __('Notification Manager') }}
             </h1>
-            <p class="text-sm text-blue-500 dark:text-blue-400 font-medium mt-1">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {{ __('View and manage all your system alerts and notifications') }}
             </p>
         </div>

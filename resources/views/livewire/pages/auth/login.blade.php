@@ -1,81 +1,60 @@
-<div>
-    <div class="px-8 py-8">
-        @if (Auth::viaRemember())
-            <div class="mb-4 text-sm text-gray-600">
-                {{ __('You are logged in using a "Remember Me" cookie.') }}
+<div class="p-6 sm:p-8">
+    @if (Auth::viaRemember())
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ __('Welcome back') }}</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('You are signed in on this device.') }}</p>
+        <button type="button" wire:click="viaRemember"
+            class="mt-6 w-full py-2.5 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 shadow-sm shadow-primary-600/30">
+            {{ __('Continue') }}
+        </button>
+    @else
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ __('Sign in') }}</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('Use your staff account to continue.') }}</p>
+
+        <x-auth-session-status class="mt-4" :status="session('status')" />
+
+        <form wire:submit="login" class="mt-6 space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Email') }}</label>
+                <div class="relative mt-1.5">
+                    <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                    <input wire:model="form.email" id="email" type="email" name="email" required autofocus autocomplete="username"
+                        placeholder="you@sparkle.ug"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 pl-9 pr-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none">
+                </div>
+                <x-input-error :messages="$errors->get('form.email')" class="mt-1.5" />
             </div>
 
-            <x-button wire:click="viaRemember" primary>
-                {{ __('Continue Login') }}
-            </x-button>
-
-            <hr class="my-8 border-t border-gray-200">
-        @else
-            <!-- Session Status -->
-            <x-auth-session-status class="mb-4" :status="session('status')" />
-
-            <form wire:submit="login">
-                <!-- Email Address -->
-                <div>
-                    <x-input-label for="email" :value="__('Email')" />
-                    <x-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email"
-                        required autofocus autocomplete="username" />
-                    <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
-                </div>
-
-                <!-- Password -->
-                <div class="mt-4 relative" x-data="{ show: true }">
-                    <x-input-label for="password" :value="__('Password')" />
-
-                    <div class="relative">
-                        <x-input id="password" placeholder="" x-bind:type="show ? 'password' : 'text'" name="password"
-                            required wire:model="form.password" autocomplete="current-password" class="mt-1 pr-10" />
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
-
-                            <svg class="h-6 text-gray-700" fill="none" @click="show = !show"
-                                :class="{ 'block': !show, 'hidden': show }" xmlns="http://www.w3.org/2000/svg"
-                                viewbox="0 0 576 512">
-                                <path fill="currentColor"
-                                    d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z">
-                                </path>
-                            </svg>
-
-                            <svg class="h-6 text-gray-700" fill="none" @click="show = !show"
-                                :class="{ 'hidden': !show, 'block': show }" xmlns="http://www.w3.org/2000/svg"
-                                viewbox="0 0 640 512">
-                                <path fill="currentColor"
-                                    d="M320 400c-75.85 0-137.25-58.71-142.9-133.11L72.2 185.82c-13.79 17.3-26.48 35.59-36.72 55.59a32.35 32.35 0 0 0 0 29.19C89.71 376.41 197.07 448 320 448c26.91 0 52.87-4 77.89-10.46L346 397.39a144.13 144.13 0 0 1-26 2.61zm313.82 58.1l-110.55-85.44a331.25 331.25 0 0 0 81.25-102.07 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64a308.15 308.15 0 0 0-147.32 37.7L45.46 3.37A16 16 0 0 0 23 6.18L3.37 31.45A16 16 0 0 0 6.18 53.9l588.36 454.73a16 16 0 0 0 22.46-2.81l19.64-25.27a16 16 0 0 0-2.82-22.45zm-183.72-142l-39.3-30.38A94.75 94.75 0 0 0 416 256a94.76 94.76 0 0 0-121.31-92.21A47.65 47.65 0 0 1 304 192a46.64 46.64 0 0 1-1.54 10l-73.61-56.89A142.31 142.31 0 0 1 320 112a143.92 143.92 0 0 1 144 144c0 21.63-5.29 41.79-13.9 60.11z">
-                                </path>
-                            </svg>
-                        </div>
-
-                        <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
-                    </div>
-                </div>
-
-                <!-- Remember Me -->
-                <div class="block mt-4">
-                    <label for="remember" class="inline-flex items-center">
-                        <input wire:model="form.remember" id="remember" type="checkbox"
-                            class="rounded-sm border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                            name="remember">
-                        <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-                    </label>
-                </div>
-
-                <div class="flex items-center justify-end mt-4">
+            <div x-data="{ show: false }">
+                <div class="flex items-center justify-between">
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Password') }}</label>
                     @if (Route::has('password.request'))
-                        <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            href="{{ route('password.request') }}" wire:navigate>
-                            {{ __('Forgot your password?') }}
-                        </a>
+                        <a href="{{ route('password.request') }}" wire:navigate class="text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400">{{ __('Forgot password?') }}</a>
                     @endif
-
-                    <x-button class="ms-3" type="submit" primary>
-                        {{ __('Log in') }}
-                    </x-button>
                 </div>
-            </form>
-        @endif
-    </div>
+                <div class="relative mt-1.5">
+                    <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+                    <input wire:model="form.password" id="password" name="password" required autocomplete="current-password"
+                        x-bind:type="show ? 'text' : 'password'"
+                        class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 pl-9 pr-10 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none">
+                    <button type="button" @click="show = !show" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-gray-400 hover:text-gray-600"
+                        :aria-label="show ? '{{ __('Hide password') }}' : '{{ __('Show password') }}'">
+                        <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
+                <x-input-error :messages="$errors->get('form.password')" class="mt-1.5" />
+            </div>
+
+            <label for="remember" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <input wire:model="form.remember" id="remember" type="checkbox" name="remember"
+                    class="rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500">
+                {{ __('Keep me signed in') }}
+            </label>
+
+            <button type="submit" wire:loading.attr="disabled"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 shadow-sm shadow-primary-600/30 disabled:opacity-70">
+                <i class="fas fa-circle-notch fa-spin" wire:loading wire:target="login"></i>
+                {{ __('Sign in') }}
+            </button>
+        </form>
+    @endif
 </div>

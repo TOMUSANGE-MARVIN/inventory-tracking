@@ -1,13 +1,3 @@
-<div class="px-3 shrink-0 lg:hidden">
-    <x-button 
-        type="button" 
-        iconOnly 
-        secondary
-        x-show="!isSidebarOpen"
-        @click="isSidebarOpen = !isSidebarOpen"
-        srText="Toggle sidebar"
-    >
-        <x-icons.menu-fold-left x-show="isSidebarOpen" class="w-6 h-6" />
-        <x-icons.menu-fold-right x-show="!isSidebarOpen" class="w-6 h-6" />
-    </x-button>
+<div class="shrink-0 px-3 py-3 border-t border-gray-200/70 dark:border-gray-800">
+    <livewire:layout.sidebar-logout />
 </div>

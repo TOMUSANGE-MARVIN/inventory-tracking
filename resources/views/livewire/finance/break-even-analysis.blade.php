@@ -1,6 +1,6 @@
 <div>
     <div class="print:hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <div class="text-sm text-gray-500 mb-1">
@@ -25,7 +25,7 @@
     </div>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <!-- Filters -->
             <div class="mb-6">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">

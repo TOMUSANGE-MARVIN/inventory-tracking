@@ -99,7 +99,7 @@ class GenerateFinancialReportsAction
                 'amount' => $netIncome,
                 'margin' => $netMargin,
                 'trend' => $this->calculateTrend($netIncome, $previousPeriod['net_income'] ?? 0),
-                'per_day' => $netIncome / max(1, $startDate->diffInDays($endDate)),
+                'per_day' => $netIncome / max(1, (int) abs($startDate->diffInDays($endDate))),
             ],
             'key_ratios' => [
                 'gross_margin' => $grossMargin,
@@ -209,7 +209,7 @@ class GenerateFinancialReportsAction
                 'breakdown' => $this->getExpenseBreakdown($startDate, $endDate),
             ],
             'net_income' => $netIncome,
-            'earnings_per_day' => $netIncome / max(1, $startDate->diffInDays($endDate)),
+            'earnings_per_day' => $netIncome / max(1, (int) abs($startDate->diffInDays($endDate))),
             'generated_at' => now()->toISOString(),
         ];
     }
@@ -282,7 +282,7 @@ class GenerateFinancialReportsAction
         $currentPeriod = $this->generateProfitLossStatement($startDate, $endDate, $period);
 
         // Calculate previous period dates
-        $periodLength = $startDate->diffInDays($endDate);
+        $periodLength = (int) abs($startDate->diffInDays($endDate));
         $previousEndDate = $startDate->copy()->subDay();
         $previousStartDate = $previousEndDate->copy()->subDays($periodLength);
 
@@ -388,7 +388,7 @@ class GenerateFinancialReportsAction
 
     private function getPreviousPeriodComparison(Carbon $startDate, Carbon $endDate): array
     {
-        $periodLength = $startDate->diffInDays($endDate);
+        $periodLength = (int) abs($startDate->diffInDays($endDate));
         $previousEndDate = $startDate->copy()->subDay();
         $previousStartDate = $previousEndDate->copy()->subDays($periodLength);
 

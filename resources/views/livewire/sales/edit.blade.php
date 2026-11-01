@@ -50,7 +50,7 @@
     <!-- Slide-over -->
     <div x-show="isCartOpen" style="display: none;" class="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
         <div class="absolute inset-0 overflow-hidden">
-            <div x-show="isCartOpen" x-transition.opacity class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="isCartOpen = false" aria-hidden="true"></div>
+            <div x-show="isCartOpen" x-transition.opacity class="absolute inset-0 bg-gray-500/75 transition-opacity" @click="isCartOpen = false" aria-hidden="true"></div>
 
             <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <div x-show="isCartOpen" x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="pointer-events-auto w-screen max-w-2xl">

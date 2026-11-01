@@ -3,11 +3,6 @@
     <x-page-container :title="__('Permissions List')" :breadcrumbs="[['label' => __('Dashboard'), 'url' => route('dashboard')], ['label' => __('Permissions List')]]" :show-filters="true">
         
         <x-slot name="actions">
-            @can('permission_create')
-                <x-button variant="primary" icon="fas fa-plus" wire:click="dispatchTo('permission.create', 'createModal')">
-                    {{ __('Create Permission') }}
-                </x-button>
-            @endcan
         </x-slot>
 
         <x-slot name="filters">
@@ -100,7 +95,5 @@
         </div>
         </x-page-container>
     
-    @livewire('permission.create')
 
-    @livewire('permission.edit', ['permission' => $permission])
 </div>

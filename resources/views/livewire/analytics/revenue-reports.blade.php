@@ -1,6 +1,6 @@
 <div>
     <div class="print:hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <div class="flex items-center justify-between py-4">
                 <div>
                     <div class="text-sm text-gray-500 mb-1">
@@ -37,7 +37,7 @@
     </div>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             <!-- Filters -->
             <div class="bg-white rounded-lg shadow p-6 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">

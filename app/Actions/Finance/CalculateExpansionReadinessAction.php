@@ -393,19 +393,19 @@ class CalculateExpansionReadinessAction
     }
 
     // Placeholder methods for complex calculations
-    private function calculateTableUtilization($sales, $totalTables, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate): float
+    private function calculateTableUtilization($sales, $totalTables, Carbon $startDate, Carbon $endDate): float
     {
-        $days = max(1, $startDate->diffInDays($endDate));
+        $days = max(1, (int) abs($startDate->diffInDays($endDate)));
         $averageSalesPerDay = $sales->count() / $days;
         $averageTablesUsedPerDay = min($totalTables, $averageSalesPerDay / 3); // Assuming 3 sales per table per day
 
         return ($averageTablesUsedPerDay / max(1, $totalTables)) * 100;
     }
 
-    private function calculateCapacityUtilization($sales, $totalCapacity, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate): float
+    private function calculateCapacityUtilization($sales, $totalCapacity, Carbon $startDate, Carbon $endDate): float
     {
         $totalCustomers = $sales->sum('customer_count') ?: $sales->count() * 2; // Default 2 customers per sale
-        $days = max(1, $startDate->diffInDays($endDate));
+        $days = max(1, (int) abs($startDate->diffInDays($endDate)));
         $averageCustomersPerDay = $totalCustomers / $days;
 
         return ($averageCustomersPerDay / max(1, $totalCapacity)) * 100;
@@ -413,7 +413,7 @@ class CalculateExpansionReadinessAction
 
     private function getPeakHours($sales): array
     {
-        $hourlySales = $sales->groupBy(fn($sale) => $sale->created_at->format('H'))->map->count()->sortDesc();
+        $hourlySales = $sales->groupBy(fn ($sale) => $sale->created_at->format('H'))->map->count()->sortDesc();
 
         return [
             'peak_hour' => $hourlySales->keys()->first() ?? '12',
@@ -452,7 +452,7 @@ class CalculateExpansionReadinessAction
         return $bottlenecks;
     }
 
-    private function calculateCOGS(\Carbon\Carbon $startDate, \Carbon\Carbon $endDate): float
+    private function calculateCOGS(Carbon $startDate, Carbon $endDate): float
     {
         return Expense::query()->whereBetween('date', [$startDate, $endDate])
             ->whereIn('category', ['food_cost', 'beverage_cost'])
@@ -473,7 +473,7 @@ class CalculateExpansionReadinessAction
             ->get();
     }
 
-    private function calculateRevenueGrowth(\Illuminate\Support\Collection $monthlyRevenue): float
+    private function calculateRevenueGrowth(Collection $monthlyRevenue): float
     {
         if ($monthlyRevenue->count() < 2) {
             return 0;
@@ -496,7 +496,7 @@ class CalculateExpansionReadinessAction
         ];
     }
 
-    private function getProfitabilityTrend(\Carbon\Carbon $startDate, \Carbon\Carbon $endDate): string
+    private function getProfitabilityTrend(Carbon $startDate, Carbon $endDate): string
     {
         $monthlyData = $this->getMonthlyRevenue($startDate, $endDate);
 
@@ -525,7 +525,7 @@ class CalculateExpansionReadinessAction
         return 150000; // Placeholder value
     }
 
-    private function getAverageMonthlyExpenses(\Carbon\Carbon $startDate, \Carbon\Carbon $endDate): float
+    private function getAverageMonthlyExpenses(Carbon $startDate, Carbon $endDate): float
     {
         $months = max(1, $startDate->diffInMonths($endDate));
         $totalExpenses = Expense::query()->whereBetween('date', [$startDate, $endDate])->sum('amount');
@@ -612,7 +612,7 @@ class CalculateExpansionReadinessAction
         return ($serviceScore + $satisfactionScore) / 3;
     }
 
-    private function assessScalabilityReadiness($sales, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate): array
+    private function assessScalabilityReadiness($sales, Carbon $startDate, Carbon $endDate): array
     {
         $consistency = $this->calculateSaleConsistency($sales);
         $growth = $this->getUtilizationTrend($startDate, $endDate);
@@ -626,14 +626,14 @@ class CalculateExpansionReadinessAction
 
     private function calculateSaleConsistency($sales): float
     {
-        $dailySales = $sales->groupBy(fn($sale) => $sale->created_at->format('Y-m-d'))->map->count();
+        $dailySales = $sales->groupBy(fn ($sale) => $sale->created_at->format('Y-m-d'))->map->count();
 
         if ($dailySales->count() < 2) {
             return 0;
         }
 
         $average = $dailySales->avg();
-        $variance = $dailySales->map(fn($count) => ($count - $average) ** 2)->avg();
+        $variance = $dailySales->map(fn ($count) => ($count - $average) ** 2)->avg();
 
         $standardDeviation = sqrt($variance);
         $coefficientOfVariation = $average > 0 ? ($standardDeviation / $average) * 100 : 100;
