@@ -16,7 +16,6 @@ enum ScanAction: string
     case MARKED_MISSING = 'marked_missing';
     case REFILLED = 'refilled';
     case DISPATCH_CANCELLED = 'dispatch_cancelled';
-    case COUNTED = 'counted';
 
     public function label(): string
     {
@@ -31,7 +30,6 @@ enum ScanAction: string
             self::MARKED_MISSING => __('Missing on arrival'),
             self::REFILLED => __('Refilled'),
             self::DISPATCH_CANCELLED => __('Dispatch cancelled'),
-            self::COUNTED => __('Counted at stock-take'),
         };
     }
 
@@ -47,7 +45,6 @@ enum ScanAction: string
             self::MARKED_MISSING => 'bg-red-100 text-red-800',
             self::REFILLED => 'bg-cyan-100 text-cyan-800',
             self::DISPATCH_CANCELLED => 'bg-gray-200 text-gray-700',
-            self::COUNTED => 'bg-indigo-100 text-indigo-800',
         };
     }
 

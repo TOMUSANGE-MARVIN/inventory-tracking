@@ -14,8 +14,6 @@ class StockCorrection extends Model
 
     public const CANCEL_TRANSFER = 'cancel_transfer';
 
-    public const STOCK_TAKE = 'stock_take';
-
     protected $fillable = ['type', 'user_id', 'warehouse_id', 'reference', 'reason', 'details'];
 
     protected function casts(): array
@@ -38,7 +36,6 @@ class StockCorrection extends Model
         return match ($this->type) {
             self::UNDO_DELIVERY => __('Delivery entry undone'),
             self::CANCEL_TRANSFER => __('Dispatch cancelled'),
-            self::STOCK_TAKE => __('Stock-take adjustment'),
             default => $this->type,
         };
     }

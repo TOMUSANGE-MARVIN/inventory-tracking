@@ -455,7 +455,7 @@ class TrackingReports
 
     // ----------------------------------------------------------- Corrections
 
-    /** Undone deliveries, cancelled dispatches and stock-take adjustments, with who and why. */
+    /** Undone deliveries and cancelled dispatches, with who and why. */
     public function corrections(): Collection
     {
         return \App\Models\StockCorrection::query()
@@ -471,7 +471,7 @@ class TrackingReports
                 'location' => $c->warehouse?->name,
                 'by' => $c->user?->name,
                 'reason' => $c->reason,
-                'units' => count($c->details['units'] ?? $c->details['missing'] ?? []),
+                'units' => count($c->details['units'] ?? []),
             ]);
     }
 

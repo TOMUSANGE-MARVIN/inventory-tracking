@@ -356,7 +356,7 @@
 
     @elseif ($tab === 'corrections')
         {{-- ============================== CORRECTIONS ============================== --}}
-        <x-dash.card :title="__('Corrections')" :subtitle="__('Deliveries undone, dispatches cancelled and stock-take adjustments, with who made them and why')">
+        <x-dash.card :title="__('Corrections')" :subtitle="__('Deliveries undone and dispatches cancelled, with who made them and why')">
             <div class="-mx-4 sm:-mx-5 overflow-x-auto">
                 <table class="w-full">
                     <thead class="border-y border-gray-100 dark:border-gray-800"><tr>

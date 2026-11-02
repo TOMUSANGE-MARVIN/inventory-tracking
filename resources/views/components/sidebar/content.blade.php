@@ -12,7 +12,6 @@
         <x-sidebar.link title="{{ __('Transfers') }}" href="{{ route('tracking.transfers') }}" :isActive="request()->routeIs('tracking.transfers', 'tracking.dispatch', 'tracking.receive')" :icon="$i('truck')" />
         <x-sidebar.link title="{{ __('Scan station') }}" href="{{ route('tracking.station') }}" :isActive="request()->routeIs('tracking.station')" :icon="$i('qrcode')" />
         <x-sidebar.link title="{{ __('Where is this item?') }}" href="{{ route('tracking.lookup') }}" :isActive="request()->routeIs('tracking.lookup')" :icon="$i('map-marker-alt')" />
-        <x-sidebar.link title="{{ __('Stock-take') }}" href="{{ route('tracking.stocktakes') }}" :isActive="request()->routeIs('tracking.stocktakes')" :icon="$i('clipboard-check')" />
         <x-sidebar.link title="{{ __('Refills') }}" href="{{ route('tracking.refills') }}" :isActive="request()->routeIs('tracking.refills')" :icon="$i('redo-alt')" />
         <x-sidebar.link title="{{ __('Movement history') }}" href="{{ route('tracking.history') }}" :isActive="request()->routeIs('tracking.history')" :icon="$i('history')" />
         <x-sidebar.link title="{{ __('Reports') }}" href="{{ route('tracking.reports') }}" :isActive="request()->routeIs('tracking.reports')" :icon="$i('chart-line')" />

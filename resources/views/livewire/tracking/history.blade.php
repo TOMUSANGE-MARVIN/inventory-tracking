@@ -20,6 +20,12 @@
                         <option value="{{ $a->value }}">{{ $a->label() }}</option>
                     @endforeach
                 </select>
+                <label class="flex items-center gap-2 text-xs text-gray-500">{{ __('From') }}
+                    <input type="date" wire:model.live="from" class="form-field flex-1 min-w-0">
+                </label>
+                <label class="flex items-center gap-2 text-xs text-gray-500">{{ __('To') }}
+                    <input type="date" wire:model.live="to" class="form-field flex-1 min-w-0">
+                </label>
             </div>
 
             {{-- Phones: compact list. --}}

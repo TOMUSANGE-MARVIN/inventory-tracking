@@ -9,7 +9,6 @@ use App\Enums\TransferStatus;
 use App\Livewire\Tracking\Arrivals;
 use App\Livewire\Tracking\Lookup;
 use App\Livewire\Tracking\Receive;
-use App\Livewire\Tracking\StockTakes;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductWarehouse;
@@ -135,42 +134,4 @@ it('only offers undo while nothing has happened to the delivery', function () {
 
     Livewire::test(Lookup::class)->set('code', $this->box->code)->assertDontSee('Undo this delivery entry');
     expect(fn () => $this->service->undoDelivery($this->box->fresh(), 'test'))->toThrow(RuntimeException::class);
-});
-
-// ------------------------------------------------------------------ Stock-take
-
-it('counts a location, flags what is missing or unexpected, and marks missing items', function () {
-    [, $loose] = [null, $this->service->receiveArrival($this->product, $this->hq->id, 2)];
-    [$ntindaBox, $ntindaItems] = $this->service->receiveBoxedDelivery($this->ntinda->id, [$this->product->id => 1]);
-    expect(stockAt($this->product, $this->hq))->toBe(6);
-
-    $component = Livewire::test(StockTakes::class)
-        ->set('warehouse', (string) $this->hq->id)
-        ->call('start')
-        ->assertSet('flash.type', 'success');
-
-    // The sealed box counts its 4 units in one scan; one loose unit is counted; the other is not found.
-    $component->call('scanned', $this->box->code)->assertSee('4 units counted')
-        ->call('scanned', $loose->first()->code)->assertSet('flash.type', 'success')
-        ->call('scanned', $loose->first()->code)->assertSee('already counted')
-        // An item the system has at Ntinda turns up at Head Office.
-        ->call('scanned', $ntindaItems->first()->code)->assertSee('not expected here')
-        ->assertSee($loose->last()->code)
-        ->set('markMissing', true)
-        ->call('finish')
-        ->assertSee('5 found, 1 not found, 1 unexpected');
-
-    $missing = $loose->last()->fresh();
-    expect($missing->status)->toBe(ItemStatus::MISSING)
-        ->and(stockAt($this->product, $this->hq))->toBe(5)
-        ->and(StockScan::query()->where('action', ScanAction::COUNTED)->count())->toBe(5)
-        ->and(StockScan::query()->where('action', ScanAction::MARKED_MISSING)->where('stock_item_id', $missing->id)->value('note'))->toContain('Not found at stock-take')
-        ->and(StockCorrection::query()->where('type', StockCorrection::STOCK_TAKE)->sole()->details['missing'])->toBe([$missing->code]);
-});
-
-it('limits a branch admin to stock-takes at their own branch', function () {
-    $this->actingAs($this->kansangaAdmin);
-
-    Livewire::test(StockTakes::class)->set('warehouse', (string) $this->hq->id)->call('start')->assertForbidden();
-    Livewire::test(StockTakes::class)->set('warehouse', (string) $this->kansanga->id)->call('start')->assertSet('flash.type', 'success');
 });

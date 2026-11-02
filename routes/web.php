@@ -151,7 +151,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'auth.session', 'wor
         Route::get('/reports/export', App\Http\Controllers\TrackingReportExportController::class)->name('reports.export');
         Route::livewire('/labels', TrackingLabels::class)->name('labels');
         Route::livewire('/refills', App\Livewire\Tracking\Refills::class)->name('refills');
-        Route::livewire('/stock-take', App\Livewire\Tracking\StockTakes::class)->name('stocktakes');
     });
 });
 
