@@ -17,6 +17,7 @@ use App\Models\StockScan;
 use App\Models\Transfer;
 use App\Models\TransferDetails;
 use App\Models\Warehouse;
+use App\Services\Integration\Outbox;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -209,6 +210,9 @@ class StockTrackingService
                 }
             }
 
+            // Empty refillable containers travel too, but they are not stock.
+            $emptyIds = $items->reject(fn (StockItem $i) => $i->status === ItemStatus::IN_STOCK)->pluck('id')->all();
+
             foreach ($items as $item) {
                 $transfer->items()->attach($item->id, ['from_stock' => $item->status === ItemStatus::IN_STOCK]);
                 $item->update(['status' => ItemStatus::IN_TRANSIT, 'warehouse_id' => null, 'transfer_id' => $transfer->id]);
@@ -218,6 +222,8 @@ class StockTrackingService
             foreach ($boxes as $box) {
                 $box->update(['status' => BoxStatus::IN_TRANSIT, 'warehouse_id' => null, 'transfer_id' => $transfer->id]);
             }
+
+            $this->outbox()->transferDispatched($transfer, $items, $emptyIds);
 
             return $transfer;
         });
@@ -294,6 +300,8 @@ class StockTrackingService
                 'note' => trim(($transfer->note ?? '') . "\n" . ($note ?? '')) ?: null,
             ]);
 
+            $this->outbox()->transferReceived($transfer, $received, $missing, $empties);
+
             return $transfer;
         });
     }
@@ -330,6 +338,10 @@ class StockTrackingService
 
             $item->update(['status' => $to]);
             $this->log($item, $item->warehouse_id, $action, null, $note);
+
+            if (in_array($action, [ScanAction::DISPOSED, ScanAction::RETURNED_FOR_REFILL], true)) {
+                $this->outbox()->itemFinished($item, $action);
+            }
 
             if ($item->box_id) {
                 $this->takeOutOfBox($item);
@@ -391,6 +403,7 @@ class StockTrackingService
             $this->addStock($item->product_id, $item->warehouse_id, 1);
             Product::query()->whereKey($item->product_id)->increment('quantity');
             $this->log($item, $item->warehouse_id, ScanAction::REFILLED, null, $note);
+            $this->outbox()->itemRefilled($item);
 
             return $item;
         });
@@ -562,13 +575,22 @@ class StockTrackingService
                 'details' => ['to' => $transfer->toWarehouse?->name, 'units' => $items->pluck('code')->all()],
             ]);
 
+            $this->outbox()->transferCancelled($transfer, trim($reason));
+
             return $transfer;
         });
     }
 
+    /** Updates for the existing system (see App\Services\Integration\Outbox). */
+    private function outbox(): Outbox
+    {
+        return app(Outbox::class);
+    }
+
     public function headOffice(): ?Warehouse
     {
-        return Warehouse::query()->orderBy('id')->first();
+        // The location the existing system marks as Head Office; before it is synced, the first location.
+        return Warehouse::query()->orderByDesc('is_head_office')->orderBy('id')->first();
     }
 
     private function stockRow(string $productId, int $warehouseId): Builder

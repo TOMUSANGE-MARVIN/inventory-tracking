@@ -149,6 +149,8 @@ class Product extends Model
         'availability',
         'unit',
         'is_refillable',
+        'external_id',
+        'grams_per_unit',
         'status',
         'tax_amount',
         'tax_type',

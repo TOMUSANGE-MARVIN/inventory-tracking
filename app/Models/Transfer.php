@@ -96,6 +96,7 @@ class Transfer extends Model
         'note',
         'dispatched_by',
         'dispatched_at',
+        'transfer_request_id',
         'received_by',
         'received_at',
     ];
@@ -127,6 +128,12 @@ class Transfer extends Model
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by');
+    }
+
+    /** The requisition/transfer from the existing system this dispatch fulfils, if any. */
+    public function transferRequest(): BelongsTo
+    {
+        return $this->belongsTo(TransferRequest::class);
     }
 
     public function fromWarehouse(): BelongsTo

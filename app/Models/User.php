@@ -115,6 +115,7 @@ class User extends Authenticatable implements OAuthenticatable
         'id', 'name', 'email', 'password', 'avatar',
         'phone', 'station', 'role_id', 'status', 'is_all_warehouses',
         'default_client_id', 'default_warehouse_id',
+        'external_id', 'external_role',
     ];
 
     /**

@@ -42,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'check.installation' => CheckInstallation::class,
             'workers.station' => App\Http\Middleware\KeepWorkersAtStation::class,
+            'integration' => App\Http\Middleware\AuthenticateIntegration::class,
         ]);
 
         // Uncomment to apply installation check globally to web routes

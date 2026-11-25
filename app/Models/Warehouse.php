@@ -82,6 +82,7 @@ class Warehouse extends Model
      */
     protected $fillable = [
         'name', 'city', 'address', 'phone', 'email', 'country',
+        'status', 'external_id', 'is_head_office',
     ];
 
     public function users()
